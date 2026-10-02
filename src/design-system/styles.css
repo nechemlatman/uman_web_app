@@ -989,9 +989,6 @@ tbody tr:hover {
     width: 100%;
     margin: 0;
   }
-  .mobile-menu {
-    display: inline-flex;
-  }
   .scrim {
     display: block;
     position: fixed;
