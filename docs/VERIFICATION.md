@@ -4,7 +4,7 @@
 
 - 35 Vitest domain/repository checks: scoped rows, public-key configuration, civil dates, overlap, activation rules, money strings, UTC mapping, timestamp precision, localization and RPC arguments.
 - 58 disposable PostgreSQL checks: all 13 baseline migrations plus the web migration; anonymous/outsider denial; no client DML; CAS; create idempotency; immutable financial values; rate/currency checks; reversals and totals; audit atomicity on successful writes; task terminal/restored state; issue resolution/reopening; bed availability; same-day turnover; immutable assignment identity; full-event accommodation gaps; deterministic alert output; creator-scoped request confirmation.
-- 13 Chromium browser tests: person creation/conflict merge, task creation, accommodation warning acknowledgment, transport assignment, exact payment entry, revoked membership, logout/session restoration, realtime invalidation and retained drafts, offline form retention, English/Hebrew at 1440/768/390 pixels, and mobile menu keyboard closure.
+- The browser workflow suite covers person creation/conflict merge, task creation, accommodation warning acknowledgment, transport assignment, exact payment entry, revoked membership, logout/session restoration, realtime invalidation and retained drafts, offline form retention, English/Hebrew responsive layouts, expanded global search, manager-focused mobile navigation, record-level alerts and direct WhatsApp actions. CI runs the suite in Chromium, Firefox and an emulated iPhone WebKit project.
 - One additional isolated hot-reload browser test passes with no console/page errors after an event-context source update. It runs a copied app on port 5180 and does not alter the active app.
 - TypeScript, ESLint and production build pass.
 - npm audit reported zero vulnerabilities for the installed lockfile.
@@ -17,7 +17,7 @@ Fixtures are isolated test-only records and requests. They are never loaded by p
 
 Inspected the real signed-in event selector and command center in the in-app Chromium browser. Verified live data, event metadata, existing audit entries and the connected realtime indicator. Restored temporary viewport overrides afterward. The live development console exposed duplicate-root/context errors during source hot updates; stable development roots/contexts were added and verified separately. Earlier console entries remain historical; they are not presented as a clean-console run. The user was actively using the real accommodation forms; no automation created a fake person, payment or assignment in that event.
 
-Reviewed automated desktop English and mobile Hebrew full-page screenshots. The review identified a transient closed-sidebar overlay during RTL switching; the fix and keyboard regression test pass. Responsive browser checks cover tablet as well.
+Reviewed automated desktop English and mobile Hebrew full-page screenshots. CI now retains per-browser screenshot/trace evidence for seven days. The review identified a transient closed-sidebar overlay during RTL switching; the fix and keyboard regression test pass. Responsive browser checks cover tablet as well.
 
 ## Database deployment
 
@@ -37,7 +37,7 @@ Supabase advisors were run after deployment:
 ## Not verified / release boundaries
 
 - Real simultaneous edits using two different hosted manager accounts. The user will add another manager later. Separate-manager CAS is tested in PostgreSQL, and incoming realtime refresh/draft preservation is tested in Chromium with protocol fixtures.
-- Public hosting, production-origin Auth redirects, Firefox, Safari/iOS and cross-browser PWA installation.
+- Public hosting, production-origin Auth redirects, physical Safari/iOS devices and cross-browser PWA installation. Automated Firefox and WebKit coverage is part of CI, but it does not replace physical-device verification.
 - Every logistics mutation against live hosted data; local PostgreSQL and intercepted browser tests cover the critical paths without introducing production test records.
 - Alert acknowledgment/dismissal persistence, event-required-contact policy editing and automatic lifecycle-transition alerts are outside the implemented read-time alert surface.
 - Participant shares/unpaid balances remain explicitly unavailable per OPD-002/003.
