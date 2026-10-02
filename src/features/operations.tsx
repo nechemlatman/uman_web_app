@@ -281,7 +281,7 @@ function EventCountdown({
   endDate: string | null;
   today: string;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!startDate) return;
@@ -289,10 +289,19 @@ function EventCountdown({
     return () => window.clearInterval(timer);
   }, [startDate]);
   const countdown = startDate ? countdownToCivilDate(startDate, now) : null;
+  const localTime = new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
+    timeZone: "Europe/Kyiv",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(new Date(now));
   if (!countdown || countdown.totalMs <= 0) {
     return (
       <div className="countdown">
         <span>{t(!startDate ? "notSet" : endDate && today > endDate ? "eventEnded" : "inProgress")}</span>
+        <span className="event-local-time">
+          {t("localTime")} · <bdi>{localTime}</bdi>
+        </span>
         <span className="banner-rule" />
       </div>
     );
@@ -313,6 +322,9 @@ function EventCountdown({
           </div>
         ))}
       </div>
+      <span className="event-local-time">
+        {t("localTime")} · <bdi>{localTime}</bdi>
+      </span>
       <span className="banner-rule" />
     </div>
   );
