@@ -294,7 +294,9 @@ test("mobile Hebrew navigation keeps finance primary and More controls the drawe
   await expect(page.locator("#event-navigation")).not.toBeVisible();
 });
 
-test("global search opens from the manager keyboard shortcut", async ({ page }) => {
+test("global search opens from the manager keyboard shortcut", async ({
+  page,
+}) => {
   await fixture(page);
   await login(page);
   await page.keyboard.press("Control+k");
@@ -306,7 +308,9 @@ test("global search opens from the manager keyboard shortcut", async ({ page }) 
   ).toBeFocused();
 });
 
-test("global search covers transport and apartment issues", async ({ page }) => {
+test("global search covers transport and apartment issues", async ({
+  page,
+}) => {
   const f = await fixture(page);
   f.records.trips = [
     {
@@ -340,7 +344,9 @@ test("global search covers transport and apartment issues", async ({ page }) => 
   ).toBeVisible();
 });
 
-test("record details surface operational alerts in context", async ({ page }) => {
+test("record details surface operational alerts in context", async ({
+  page,
+}) => {
   const f = await fixture(page);
   f.state.alerts.push({
     id: "alert-person-passport",
