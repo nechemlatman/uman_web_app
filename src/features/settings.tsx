@@ -59,6 +59,7 @@ export default function Settings() {
   );
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!writable || pending || !dirty || invalidDates) return;
     setPending(true);
     setSaved(false);
     setError(undefined);
