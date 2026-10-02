@@ -299,9 +299,9 @@ test("global search opens from the manager keyboard shortcut", async ({ page }) 
   await login(page);
   await page.keyboard.press("Control+k");
   await expect(
-    page.getByRole("heading", { name: "Global search", exact: true }),
+    page.getByRole("heading", { name: "Search across the event", exact: true }),
   ).toBeVisible();
-  await expect(\n    page.getByRole("textbox", { name: "Search everything" }),\n  ).toBeFocused();
+  await expect(\n    page.getByRole("textbox", { name: "Search across the event" }),\n  ).toBeFocused();
 });
 
 
@@ -328,7 +328,7 @@ test("global search covers transport and apartment issues", async ({ page }) => 
   ];
   await login(page);
   await page.goto("/e/" + eventId + "/search");
-  const search = page.getByRole("textbox", { name: "Global search" });
+  const search = page.getByRole("textbox", { name: "Search across the event" });
   await search.fill("Warsaw");
   await expect(
     page.getByRole("link", { name: "Warsaw Airport → Uman" }),
