@@ -335,3 +335,12 @@ test("record details surface operational alerts in context", async ({ page }) =>
   await expect(page.getByText("Passport validity needs review", { exact: true })).toBeVisible();
 });
 
+test("person detail exposes a direct WhatsApp contact action", async ({ page }) => {
+  const f = await fixture(page);
+  f.records.people[0].whatsapp_phone = "+972 50 123 4567";
+  await login(page);
+  await page.goto("/e/" + eventId + "/person/" + personId);
+  const whatsapp = page.getByRole("link", { name: "+972 50 123 4567", exact: true });
+  await expect(whatsapp).toHaveAttribute("href", "https://wa.me/972501234567");
+});
+
