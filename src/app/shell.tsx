@@ -81,7 +81,7 @@ export function Shell() {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <span className="status-dot" />
+          <Icon name="location" size={14} />
           {t("location")}
         </div>
       </aside>
