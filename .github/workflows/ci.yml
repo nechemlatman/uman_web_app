@@ -68,7 +68,7 @@ jobs:
         run: npm ci
 
       - name: Install browser engines
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Browser workflows
         run: npm run test:e2e
