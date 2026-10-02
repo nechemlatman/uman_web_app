@@ -262,7 +262,5 @@ export async function login(page: Page) {
   await page.getByLabel("Email address").fill("manager@example.test");
   await page.getByLabel("Password", { exact: true }).fill("fixture-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.waitForURL(/\/(events|e\/)/);
-  if (page.url().endsWith("/events"))
-    await page.getByRole("link", { name: /Browser verification event/ }).click();
+  await page.waitForURL(new RegExp("/e/" + eventId + "(/|$)"));
 }
