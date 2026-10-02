@@ -40,6 +40,7 @@ describe("event-local countdown", () => {
     );
   });
   it("returns stable countdown units without going negative", () => {
+    expect(civilMidnightUtc("2027-02-29")).toBeNull();
     const target = civilMidnightUtc("2027-09-30")!;
     expect(countdownToCivilDate("2027-09-30", target - 90061000)).toMatchObject({
       days: 1,
