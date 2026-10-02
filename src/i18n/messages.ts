@@ -213,7 +213,7 @@ export const en = {
   list: "List",
   cards: "Cards",
   print: "Print manifest",
-  printPage: "Print",
+  printPage: "Print current page",
   relationships: "Related records",
   noRelated: "No linked records found.",
   utcHint:
@@ -572,7 +572,7 @@ export const he: Record<MessageKey, string> = {
   list: "רשימה",
   cards: "כרטיסים",
   print: "הדפסת רשימה",
-  printPage: "הדפסה",
+  printPage: "הדפסת העמוד הנוכחי",
   relationships: "רשומות מקושרות",
   noRelated: "לא נמצאו רשומות מקושרות.",
   utcHint:
