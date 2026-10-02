@@ -1,1 +1,26 @@
-{"name":"UMAN Event Manager","short_name":"UMAN","start_url":"/","display":"standalone","background_color":"#f5f5f2","theme_color":"#102c48","icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
+{
+  "id": "/",
+  "name": "UMAN Event Manager",
+  "short_name": "UMAN",
+  "description": "Bilingual operational management for the Uman event.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f2",
+  "theme_color": "#102c48",
+  "lang": "he",
+  "dir": "rtl",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
