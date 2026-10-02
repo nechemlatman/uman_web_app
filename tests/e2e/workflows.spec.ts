@@ -274,3 +274,46 @@ test("mobile Hebrew menu opens and closes with Escape", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(page.locator("#event-navigation")).not.toBeVisible();
 });
+
+test("global search covers ground transport and apartment issues", async ({ page }) => {
+  const f = await fixture(page);
+  f.records.trips = [
+    {
+      ...f.common,
+      id: "88888888-8888-4888-8888-888888888888",
+      origin: "Warsaw Airport",
+      destination: "Uman",
+      status: "PLANNED",
+    },
+  ];
+  f.records.apartment_issues = [
+    {
+      ...f.common,
+      id: "99999999-9999-4999-8999-999999999999",
+      title: "Hot water pump",
+      priority: "HIGH",
+      status: "OPEN",
+    },
+  ];
+  await login(page);
+  await page.goto("/e/" + eventId + "/search");
+  const search = page.getByRole("textbox", { name: "Search everything" });
+  await search.fill("Warsaw");
+  await expect(page.getByRole("link", { name: "Warsaw Airport → Uman" })).toBeVisible();
+  await search.fill("Hot water");
+  await expect(page.getByRole("link", { name: "Hot water pump" })).toBeVisible();
+});
+
+test("mobile bottom navigation prioritizes frequent manager destinations", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fixture(page);
+  await login(page);
+  const mobile = page.locator(".mobile-nav");
+  await expect(mobile.getByRole("link", { name: "People", exact: true })).toBeVisible();
+  await expect(mobile.getByRole("link", { name: "Accommodation", exact: true })).toBeVisible();
+  await expect(mobile.getByRole("link", { name: "Finance", exact: true })).toBeVisible();
+  await expect(mobile.getByRole("button", { name: "Open more navigation", exact: true })).toBeVisible();
+  await mobile.getByRole("link", { name: "Finance", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp("/e/" + eventId + "/payment$"));
+});
+
