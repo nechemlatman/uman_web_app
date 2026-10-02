@@ -360,6 +360,20 @@ export default function Operations() {
             {formatDate(event.end_date, locale)}
           </p>
           <Badge value={event.lifecycle_stage} />
+          <div className="banner-metrics" aria-label={t("operations")}>
+            <Link to={root + "/flight"}>
+              <strong>{data.counts.flights ?? 0}</strong>
+              <span>{t("flights")}</span>
+            </Link>
+            <Link to={root + "/trip"}>
+              <strong>{data.counts.trips ?? 0}</strong>
+              <span>{t("trips")}</span>
+            </Link>
+            <Link to={root + "/alerts"}>
+              <strong>{data.alerts.length}</strong>
+              <span>{t("alerts")}</span>
+            </Link>
+          </div>
         </div>
         <div className="countdown">
           {days !== null && days > 0 ? (
