@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { catalog } from "../domain/catalog";
 import { title, type Kind, type RecordRow } from "../domain/model";
-import { lifecycle, rpc } from "../data/repository";
+import { lifecycle, rpc, summary } from "../data/repository";
 import { useEvent } from "../app/event";
 import { useI18n, formatDate } from "../i18n/provider";
 import { RecordValue } from "../components/record-value";
@@ -41,6 +41,14 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
   const [history, setHistory] = useState(false);
   const financial = kind === "payment" || kind === "expense";
   const root = "/e/" + event.id + "/" + kind;
+  const commandCenter = useQuery({
+    queryKey: ["event", event.id, "summary"],
+    queryFn: () => summary(event.id),
+  });
+  const recordAlerts =
+    commandCenter.data?.alerts.filter(
+      (alert) => alert.kind === kind && alert.entity_id === row.id,
+    ) ?? [];
   async function archive() {
     if (!window.confirm(t(financial ? "reverseConfirm" : "archiveConfirm")))
       return;
@@ -103,6 +111,33 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
         </div>
       </div>
       {!!error && <ErrorState error={error} />}
+      {recordAlerts.length > 0 && (
+        <section
+          className="card record-attention"
+          aria-labelledby="record-attention-title"
+        >
+          <div className="section-heading">
+            <h2 id="record-attention-title">{t("alerts")}</h2>
+            <Badge value={recordAlerts[0].severity} />
+          </div>
+          <div className="operational-list">
+            {recordAlerts.map((alert) => (
+              <div
+                className={
+                  "operational-row alert-" + alert.severity.toLowerCase()
+                }
+                key={alert.id}
+              >
+                <div>
+                  <strong>{t(alert.rule)}</strong>
+                  <p>{alert.label}</p>
+                </div>
+                <Badge value={alert.severity} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       <article className="card">
         <div className="section-heading">
           <h2>{t("overview")}</h2>
