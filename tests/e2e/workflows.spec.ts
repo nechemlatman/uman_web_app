@@ -271,7 +271,9 @@ test("mobile Hebrew navigation keeps finance primary and More controls the drawe
   await login(page);
   await page.getByRole("button", { name: "עברית", exact: true }).click();
   const mobileNav = page.locator(".mobile-nav");
-  await expect(mobileNav.getByRole("link", { name: "כספים", exact: true })).toBeVisible();
+  await expect(
+    mobileNav.getByRole("link", { name: "כספים", exact: true }),
+  ).toBeVisible();
   await expect(page.locator("#event-navigation")).not.toBeVisible();
   await mobileNav.getByRole("button", { name: "עוד", exact: true }).click();
   await expect(page.locator("#event-navigation")).toBeVisible();
