@@ -55,7 +55,7 @@ test("task creation uses the server mutation contract", async ({ page }) => {
 for (const width of [1440, 768, 390])
   test(
     "responsive English and Hebrew dashboard at " + width,
-    async ({ page }) => {
+    async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await fixture(page);
       await login(page);
@@ -68,7 +68,12 @@ for (const width of [1440, 768, 390])
         ),
       ).toBe(true);
       await page.screenshot({
-        path: "test-results/dashboard-" + width + "-en.png",
+        path:
+          "test-results/dashboard-" +
+          testInfo.project.name +
+          "-" +
+          width +
+          "-en.png",
         fullPage: true,
       });
       await page.getByRole("button", { name: "עברית", exact: true }).click();
@@ -79,7 +84,12 @@ for (const width of [1440, 768, 390])
         ),
       ).toBe(true);
       await page.screenshot({
-        path: "test-results/dashboard-" + width + "-he.png",
+        path:
+          "test-results/dashboard-" +
+          testInfo.project.name +
+          "-" +
+          width +
+          "-he.png",
         fullPage: true,
       });
       await page.goto("/e/" + eventId + "/person");
