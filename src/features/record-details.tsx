@@ -93,6 +93,9 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
           </div>
         </div>
         <div className="actions">
+          <button type="button" onClick={() => window.print()}>
+            {t("print")}
+          </button>
           {writable && !row.is_deleted && !financial && (
             <Link className="button primary" to={root + "/" + row.id + "/edit"}>
               {t("edit")}
