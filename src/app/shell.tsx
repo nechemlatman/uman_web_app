@@ -150,6 +150,7 @@ export function Shell() {
           <button
             type="button"
             className={open ? "active" : ""}
+            aria-label={t("openMenu")}
             aria-expanded={open}
             aria-controls="event-navigation"
             onClick={() => setOpen(true)}
