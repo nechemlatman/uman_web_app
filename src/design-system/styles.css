@@ -555,6 +555,13 @@ tbody tr:hover {
   background: var(--gold-soft);
   color: var(--gold-ink);
 }
+.record-attention {
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
+  box-shadow: 0 8px 24px rgba(16, 44, 72, 0.06);
+}
+.record-attention .section-heading {
+  margin-bottom: var(--space-3);
+}
 .conflict-panel {
   border: 1px solid var(--gold);
   padding: var(--space-6);
