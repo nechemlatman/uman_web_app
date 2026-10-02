@@ -671,6 +671,12 @@ tbody tr:hover {
   letter-spacing: 0.6px;
   text-transform: uppercase;
 }
+.event-local-time {
+  margin-top: var(--space-3);
+  color: #cbd8e2;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
 .banner-rule {
   width: var(--space-12);
   height: 2px;
