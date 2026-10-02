@@ -1,3 +1,4 @@
+import { developmentSingleton } from "./development-singleton";
 import {
   createContext,
   useContext,
@@ -13,11 +14,13 @@ interface AuthState {
   loading: boolean;
   failed: boolean;
 }
-const AuthContext = createContext<AuthState>({
-  session: null,
-  loading: true,
-  failed: false,
-});
+const AuthContext = developmentSingleton("auth-context", () =>
+  createContext<AuthState>({
+    session: null,
+    loading: true,
+    failed: false,
+  }),
+);
 export function SessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [state, setState] = useState<AuthState>({

@@ -1,3 +1,4 @@
+import { developmentSingleton } from "../app/development-singleton";
 import {
   createContext,
   useContext,
@@ -7,11 +8,13 @@ import {
 } from "react";
 import { en, he, type MessageKey } from "./messages";
 type Locale = "he" | "en";
-const Context = createContext({
-  locale: "he" as Locale,
-  setLocale: (_l: Locale) => {},
-  t: (key: string): string => key,
-});
+const Context = developmentSingleton("i18n-context", () =>
+  createContext({
+    locale: "he" as Locale,
+    setLocale: (_l: Locale) => {},
+    t: (key: string): string => key,
+  }),
+);
 export function I18n({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<Locale>(() =>
     localStorage.getItem("uman.language") === "en" ? "en" : "he",

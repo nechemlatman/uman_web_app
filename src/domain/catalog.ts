@@ -363,7 +363,11 @@ export function initialFields(
       (row?.custom_fields as Record<string, unknown>) ?? {};
   return result;
 }
-export function encodeFields(kind: Kind, fields: Fields): Fields {
+export function encodeFields(
+  kind: Kind,
+  fields: Fields,
+  base?: RecordRow,
+): Fields {
   const result: Fields = {};
   for (const field of catalog[kind].fields) {
     const v = fields[field.key];
@@ -377,7 +381,10 @@ export function encodeFields(kind: Kind, fields: Fields): Fields {
           : field.type === "number"
             ? Number(v)
             : field.type === "datetime-local"
-              ? new Date(String(v) + "Z").toISOString()
+              ? base?.[field.key] &&
+                String(v) === String(base[field.key]).slice(0, 16)
+                ? String(base[field.key])
+                : new Date(String(v) + "Z").toISOString()
               : String(v).trim();
   }
   if (kind === "person") result.custom_fields = fields.custom_fields ?? {};

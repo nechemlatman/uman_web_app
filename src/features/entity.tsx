@@ -62,6 +62,7 @@ export function Records({
   const [deleted, setDeleted] = useState(false);
   const [view, setView] = useState("list");
   const [sort, setSort] = useState("newest");
+  const [direction, setDirection] = useState("");
   const page = compact
     ? localPage
     : Math.max(0, Number(params.get("page")) || 0);
@@ -93,9 +94,19 @@ export function Records({
       deleted,
       effectiveFilter,
       sort,
+      direction,
     ],
     queryFn: () =>
-      list(event.id, kind, settled, page, deleted, effectiveFilter, sort),
+      list(
+        event.id,
+        kind,
+        settled,
+        page,
+        deleted,
+        effectiveFilter,
+        sort,
+        direction,
+      ),
   });
   const data = q.data ?? [];
   const rows = data;
@@ -147,6 +158,26 @@ export function Records({
             }}
           />
         </label>
+        {!compact && ["flight", "trip"].includes(kind) && (
+          <select
+            aria-label={t("direction")}
+            value={direction}
+            onChange={(e) => {
+              setDirection(e.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="">{t("all")}</option>
+            {(kind === "trip"
+              ? ["INBOUND", "OUTBOUND", "LOCAL"]
+              : ["INBOUND", "OUTBOUND"]
+            ).map((d) => (
+              <option key={d} value={d}>
+                {t(d)}
+              </option>
+            ))}
+          </select>
+        )}
         {!compact && statusField && (
           <select
             aria-label={t("status")}
@@ -160,6 +191,11 @@ export function Records({
             }
           >
             <option value="">{t("allStatuses")}</option>
+            {["task", "apartment_issue"].includes(kind) && (
+              <option value="OPEN_ITEMS">
+                {t(kind === "task" ? "openTasks" : "openIssues")}
+              </option>
+            )}
             {statusField.options?.map((s) => (
               <option key={s} value={s}>
                 {t(s)}
@@ -182,14 +218,19 @@ export function Records({
         )}
         {!compact && (
           <>
-            <select
-              aria-label={t("sort")}
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-            >
-              <option value="newest">{t("newest")}</option>
-              <option value="name">{t("nameOrder")}</option>
-            </select>
+            {!["payment", "expense"].includes(kind) && (
+              <select
+                aria-label={t("sort")}
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value);
+                  setPage(0);
+                }}
+              >
+                <option value="newest">{t("newest")}</option>
+                <option value="name">{t("nameOrder")}</option>
+              </select>
+            )}
             <button
               aria-pressed={view === "cards"}
               onClick={() => setView(view === "list" ? "cards" : "list")}

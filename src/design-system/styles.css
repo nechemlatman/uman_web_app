@@ -971,6 +971,8 @@ tbody tr:hover {
 }
 @media (max-width: 760px) {
   .sidebar {
+    visibility: hidden;
+    pointer-events: none;
     transform: translateX(-110%);
     transition: transform var(--transition);
     width: 260px;
@@ -979,6 +981,8 @@ tbody tr:hover {
     transform: translateX(110%);
   }
   .sidebar.open {
+    visibility: visible;
+    pointer-events: auto;
     transform: translateX(0);
   }
   .workspace {
@@ -1280,7 +1284,7 @@ tbody tr:hover {
   grid-column: 1/-1;
   margin: 18px 0 0;
   padding-top: 18px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
   font-size: 1rem;
 }
 .form-section:first-child {
@@ -1293,8 +1297,14 @@ tbody tr:hover {
 }
 .occupant {
   padding: 14px 0;
-  border-block-end: 1px solid var(--border);
+  border-block-end: 1px solid var(--line);
 }
 .bed-card > .button {
   margin-top: 14px;
+}
+
+.schedule-day {
+  font-size: 1rem;
+  margin: 24px 0 8px;
+  color: var(--muted);
 }

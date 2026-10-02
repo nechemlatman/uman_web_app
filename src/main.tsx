@@ -1,3 +1,4 @@
+import { developmentSingleton } from "./app/development-singleton";
 import React, { Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -58,7 +59,9 @@ const router = createBrowserRouter([
   },
   { path: "*", element: <EventSelection /> },
 ]);
-createRoot(document.getElementById("root")!).render(
+developmentSingleton("react-root", () =>
+  createRoot(document.getElementById("root")!),
+).render(
   <React.StrictMode>
     <QueryClientProvider client={qc}>
       <I18n>

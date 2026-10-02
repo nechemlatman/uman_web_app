@@ -1,3 +1,4 @@
+import { developmentSingleton } from "./development-singleton";
 import {
   createContext,
   useContext,
@@ -13,12 +14,14 @@ import { tables, type EventRow } from "../domain/model";
 import { useSession } from "./session";
 import { useI18n } from "../i18n/provider";
 import { ErrorState, Loading } from "../components/states";
-const EventContext = createContext<{
-  event: EventRow;
-  online: boolean;
-  writable: boolean;
-  sync: string;
-} | null>(null);
+const EventContext = developmentSingleton("event-context", () =>
+  createContext<{
+    event: EventRow;
+    online: boolean;
+    writable: boolean;
+    sync: string;
+  } | null>(null),
+);
 export function useEvent() {
   const value = useContext(EventContext);
   if (!value) throw new Error("event context");

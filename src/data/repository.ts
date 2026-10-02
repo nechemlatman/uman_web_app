@@ -58,6 +58,7 @@ export async function list(
   deleted = false,
   filter?: { key: string; value: string },
   sort = "newest",
+  direction = "",
 ) {
   if (kind === "payment" || kind === "expense")
     return scopedRows(
@@ -75,7 +76,20 @@ export async function list(
     .select(kind === "apartment" ? "*,total_cost::text" : "*")
     .eq("event_id", eventId)
     .eq("is_deleted", deleted);
-  if (filter) q = q.eq(filter.key, filter.value);
+  if (filter)
+    q =
+      filter.value === "OPEN_ITEMS" && filter.key === "status"
+        ? q.not(
+            "status",
+            "in",
+            kind === "task" ? "(COMPLETED,CANCELLED)" : "(RESOLVED,CLOSED)",
+          )
+        : q.eq(filter.key, filter.value);
+  if (
+    ["flight", "trip"].includes(kind) &&
+    ["INBOUND", "OUTBOUND", "LOCAL"].includes(direction)
+  )
+    q = q.eq("direction", direction);
   const cleaned = query.replace(/[%_\\,()."]/g, "").trim();
   if (cleaned && searchColumns[kind])
     q = q.or(

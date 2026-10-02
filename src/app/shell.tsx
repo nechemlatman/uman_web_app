@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useEvent } from "./event";
 import { useI18n } from "../i18n/provider";
@@ -25,13 +25,36 @@ export function Shell() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<unknown>();
   const location = useLocation();
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [open]);
   const root = "/e/" + event.id;
+  function signOut() {
+    if (
+      document.querySelector("form[data-dirty=true]") &&
+      !window.confirm(t("unsaved"))
+    )
+      return;
+    void backend()
+      .auth.signOut()
+      .then((r) => {
+        if (r.error) setError(r.error);
+      });
+  }
   return (
     <div className="app-shell">
       <a href="#main" className="skip">
         {t("skip")}
       </a>
-      <aside className={"sidebar " + (open ? "open" : "")}>
+      <aside
+        id="event-navigation"
+        className={"sidebar " + (open ? "open" : "")}
+      >
         <Link to={root} className="wordmark">
           UMAN<span>EVENT MANAGER</span>
         </Link>
@@ -74,6 +97,8 @@ export function Shell() {
           <div className="top-leading">
             <button
               className="icon-button mobile-menu"
+              aria-expanded={open}
+              aria-controls="event-navigation"
               aria-label={t("more")}
               onClick={() => setOpen(!open)}
             >
@@ -96,13 +121,7 @@ export function Shell() {
             <button
               className="icon-button"
               aria-label={t("signOut")}
-              onClick={() =>
-                void backend()
-                  .auth.signOut()
-                  .then((r) => {
-                    if (r.error) setError(r.error);
-                  })
-              }
+              onClick={signOut}
             >
               <Icon name="logout" />
             </button>

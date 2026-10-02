@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useSession } from "../app/session";
+import { tables } from "../domain/model";
 import { useDebounced } from "../app/use-debounced";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "react-router-dom";
@@ -9,7 +11,16 @@ import { catalog } from "../domain/catalog";
 import { title, type Kind } from "../domain/model";
 import { Icon } from "../components/icon";
 import { Badge, Empty, ErrorState, Loading } from "../components/states";
+function auditLabel(table: string) {
+  const kind = (Object.keys(tables) as Kind[]).find((k) => tables[k] === table);
+  return kind
+    ? catalog[kind].label
+    : ["Event", "event", "events"].includes(table)
+      ? "events"
+      : table;
+}
 export function Activity({ entityId }: { entityId?: string }) {
+  const { session } = useSession();
   const { event } = useEvent();
   const { t, locale } = useI18n();
   const [page, setPage] = useState(0);
@@ -31,9 +42,16 @@ export function Activity({ entityId }: { entityId?: string }) {
               <span className="activity-mark" />
               <div>
                 <strong>
-                  {t(r.operation)} · {t(r.entity_type)}
+                  {t(r.operation)} · {t(auditLabel(r.entity_type))}
                 </strong>
-                <p>{formatDate(r.timestamp_utc, locale, true)}</p>
+                <p>
+                  {formatDate(r.timestamp_utc, locale, true)} ·{" "}
+                  <span title={r.actor_user_id}>
+                    {r.actor_user_id === session?.user.id
+                      ? t("you")
+                      : t("manager") + " " + r.actor_user_id.slice(0, 8)}
+                  </span>
+                </p>
               </div>
             </li>
           ))}
@@ -106,54 +124,85 @@ function Schedule({ data, limit = 100 }: { data: Summary; limit?: number }) {
   const { event } = useEvent();
   const { t, locale } = useI18n();
   const [kind, setKind] = useState("");
+  const [date, setDate] = useState("");
   const rows = data.schedule
-    .filter((s) => !kind || s.kind === kind)
+    .filter(
+      (s) =>
+        (!kind || s.kind === kind) &&
+        (!date || (s.civil_date ?? s.at.slice(0, 10)) === date),
+    )
     .slice(0, limit);
+  const days = [
+    ...new Set(rows.map((s) => s.civil_date ?? s.at.slice(0, 10))),
+  ].sort();
   return (
     <>
       {limit > 8 && (
-        <select
-          aria-label={t("filter")}
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-        >
-          <option value="">{t("all")}</option>
-          {(
-            ["flight", "trip", "task", "accommodation_assignment"] as Kind[]
-          ).map((k) => (
-            <option key={k} value={k}>
-              {t(catalog[k].label)}
-            </option>
-          ))}
-        </select>
+        <div className="toolbar">
+          <select
+            aria-label={t("filter")}
+            value={kind}
+            onChange={(e) => setKind(e.target.value)}
+          >
+            <option value="">{t("all")}</option>
+            {(
+              ["flight", "trip", "task", "accommodation_assignment"] as Kind[]
+            ).map((k) => (
+              <option key={k} value={k}>
+                {t(catalog[k].label)}
+              </option>
+            ))}
+          </select>
+          <label>
+            {t("date")}
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </label>
+        </div>
       )}
-      <div className="operational-list">
-        {rows.length ? (
-          rows.map((s, i) => (
-            <Link
-              className="operational-row"
-              to={"/e/" + event.id + "/" + s.kind + "/" + s.id}
-              key={s.kind + s.id + i}
-            >
-              <span className="row-icon">
-                <Icon name={catalog[s.kind].group} />
-              </span>
-              <div>
-                <strong>{s.label}</strong>
-                <p>
-                  {s.milestone && t(s.milestone)} ·{" "}
-                  <bdi>
-                    {formatDate(s.civil_date ?? s.at, locale, !s.civil_date)}
-                  </bdi>
-                </p>
-              </div>
-              <span className="muted">{t(catalog[s.kind].label)}</span>
-            </Link>
-          ))
-        ) : (
-          <p className="empty-inline">{t("nothingScheduled")}</p>
-        )}
-      </div>
+      {!rows.length ? (
+        <p className="empty-inline">{t("nothingScheduled")}</p>
+      ) : (
+        days.map((day) => (
+          <section key={day}>
+            {limit > 8 && (
+              <h2 className="schedule-day">{formatDate(day, locale)}</h2>
+            )}
+            <div className="operational-list">
+              {rows
+                .filter((s) => (s.civil_date ?? s.at.slice(0, 10)) === day)
+                .map((s, i) => (
+                  <Link
+                    className="operational-row"
+                    to={"/e/" + event.id + "/" + s.kind + "/" + s.id}
+                    key={s.kind + s.id + i}
+                  >
+                    <span className="row-icon">
+                      <Icon name={catalog[s.kind].group} />
+                    </span>
+                    <div>
+                      <strong>{s.label}</strong>
+                      <p>
+                        {s.milestone && t(s.milestone)} ·{" "}
+                        <bdi>
+                          {formatDate(
+                            s.civil_date ?? s.at,
+                            locale,
+                            !s.civil_date,
+                          )}
+                        </bdi>
+                      </p>
+                    </div>
+                    <span className="muted">{t(catalog[s.kind].label)}</span>
+                  </Link>
+                ))}
+            </div>
+          </section>
+        ))
+      )}
     </>
   );
 }
@@ -337,7 +386,20 @@ export default function Operations() {
           ["tasks", "openTasks", "task", "operations"],
           ["issues", "openIssues", "apartment_issue", "alerts"],
         ].map(([key, label, kind, icon]) => (
-          <Link className="stat-card" key={key} to={root + "/" + kind}>
+          <Link
+            className="stat-card"
+            key={key}
+            to={
+              root +
+              "/" +
+              kind +
+              (kind === "task" || kind === "apartment_issue"
+                ? "?status=OPEN_ITEMS"
+                : kind === "person"
+                  ? "?status=ACTIVE"
+                  : "")
+            }
+          >
             <span className="stat-top">
               <Icon name={icon} />
               <Icon name="arrow" size={16} />

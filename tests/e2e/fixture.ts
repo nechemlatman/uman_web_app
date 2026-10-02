@@ -73,19 +73,49 @@ export async function fixture(page: Page) {
       }),
     ) +
     ".test-signature";
+  const notifications: Array<(table: string) => void> = [];
   await page.routeWebSocket("**/realtime/**", (ws) => {
     ws.onMessage((raw) => {
       const frame = JSON.parse(String(raw));
-      if (Array.isArray(frame) && ["phx_join", "heartbeat"].includes(frame[3]))
+      const array = Array.isArray(frame);
+      const topic = array ? frame[2] : frame.topic,
+        event = array ? frame[3] : frame.event,
+        payload = array ? frame[4] : frame.payload;
+      const send = (event: string, payload: unknown) =>
         ws.send(
-          JSON.stringify([
-            frame[0],
-            frame[1],
-            frame[2],
-            "phx_reply",
-            { status: "ok", response: { postgres_changes: [] } },
-          ]),
+          JSON.stringify(
+            array
+              ? [frame[0], frame[1], topic, event, payload]
+              : { topic, event, payload, ref: frame.ref },
+          ),
         );
+      if (event === "phx_join") {
+        const filters = (payload.config?.postgres_changes ?? []).map(
+          (f: Record<string, unknown>, i: number) => ({ ...f, id: i + 1 }),
+        );
+        send("phx_reply", {
+          status: "ok",
+          response: { postgres_changes: filters },
+        });
+        notifications.push((table) => {
+          const ids = filters
+            .filter((f: Record<string, unknown>) => f.table === table)
+            .map((f: Record<string, unknown>) => f.id);
+          send("postgres_changes", {
+            ids,
+            data: {
+              schema: "public",
+              table,
+              type: "UPDATE",
+              commit_timestamp: new Date().toISOString(),
+              columns: [],
+              record: {},
+              old_record: {},
+            },
+          });
+        });
+      } else if (event === "heartbeat" || event === "phx_leave")
+        send("phx_reply", { status: "ok", response: {} });
     });
   });
   await page.route("https://*.supabase.co/**", async (route) => {
@@ -206,7 +236,13 @@ export async function fixture(page: Page) {
         : rows,
     );
   });
-  return { calls, records, state, common };
+  return {
+    calls,
+    records,
+    state,
+    common,
+    notify: (table: string) => notifications.forEach((n) => n(table)),
+  };
 }
 export async function login(page: Page) {
   await page.goto("/");

@@ -185,3 +185,22 @@ describe("complete bilingual forms", () => {
     }
   });
 });
+
+it("preserves original timestamp precision when editing another field", () => {
+  const row: RecordRow = {
+    id,
+    event_id: event,
+    version: 1,
+    is_deleted: false,
+    scheduled_departure_utc: "2027-09-01T12:30:45.123456+00:00",
+  };
+  const fields = initialFields("flight", row);
+  fields.airline = "Updated airline";
+  expect(encodeFields("flight", fields, row).scheduled_departure_utc).toBe(
+    row.scheduled_departure_utc,
+  );
+  fields.scheduled_departure_utc = "2027-09-01T13:30";
+  expect(encodeFields("flight", fields, row).scheduled_departure_utc).toBe(
+    "2027-09-01T13:30:00.000Z",
+  );
+});

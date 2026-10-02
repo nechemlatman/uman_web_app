@@ -61,7 +61,7 @@ export function Editor({
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!writable || pending) return;
-    const encoded = encodeFields(kind, fields);
+    const encoded = encodeFields(kind, fields, base);
     const issues = validate(kind, encoded);
     setErrors(issues);
     if (Object.keys(issues).length) return;
@@ -162,7 +162,7 @@ export function Editor({
           {t("uncertainSave")}
         </p>
       )}
-      <form className="card editor" onSubmit={submit}>
+      <form data-dirty={dirty} className="card editor" onSubmit={submit}>
         <div className="form-grid">
           {catalog[kind].fields.map((field) => {
             const immutable =

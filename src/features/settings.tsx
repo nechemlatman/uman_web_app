@@ -87,7 +87,7 @@ export default function Settings() {
           <h2>{t("currentEvent")}</h2>
           <Badge value={event.lifecycle_stage} />
         </div>
-        <form onSubmit={submit}>
+        <form data-dirty={dirty} onSubmit={submit}>
           <div className="form-grid">
             {fields.map(([key, label, type]) => (
               <label key={key}>

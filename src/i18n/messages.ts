@@ -1,4 +1,6 @@
 export const en = {
+  you: "You",
+  manager: "Manager",
   PERSON_WITHOUT_SLEEPING_PLACE: "Accommodation does not cover the full event",
   PERSON_WITHOUT_TRANSPORT: "Inbound or outbound transport is missing",
   PASSPORT_EXPIRY_RISK: "Passport validity needs review",
@@ -361,6 +363,8 @@ export const en = {
 export type MessageKey = keyof typeof en;
 export const he: Record<MessageKey, string> = {
   ...en,
+  you: "אתה",
+  manager: "מנהל",
   PERSON_WITHOUT_SLEEPING_PLACE: "הלינה אינה מכסה את כל ימי האירוע",
   PERSON_WITHOUT_TRANSPORT: "חסרה הסעה בהלוך או בחזור",
   PASSPORT_EXPIRY_RISK: "יש לבדוק את תוקף הדרכון",
