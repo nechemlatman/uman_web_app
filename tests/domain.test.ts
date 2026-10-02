@@ -9,6 +9,7 @@ import { encodeFields, initialFields, catalog } from "../src/domain/catalog";
 import { scopedRows, type RecordRow } from "../src/domain/model";
 import { validPublicConfig } from "../src/data/client";
 import { formatDate } from "../src/i18n/provider";
+import { civilMidnightUtc, countdownToCivilDate } from "../src/domain/time";
 import { en, he } from "../src/i18n/messages";
 const id = "11111111-1111-4111-8111-111111111111",
   event = "22222222-2222-4222-8222-222222222222";
@@ -29,6 +30,27 @@ describe("civil date and half-open intervals", () => {
   it("does not convert civil dates through local timezone", () =>
     expect(formatDate("2027-01-01", "en")).toContain("1 Jan 2027"));
 });
+describe("event-local countdown", () => {
+  it("resolves Uman midnight across daylight-saving offsets", () => {
+    expect(new Date(civilMidnightUtc("2027-09-30")!).toISOString()).toBe(
+      "2027-09-29T21:00:00.000Z",
+    );
+    expect(new Date(civilMidnightUtc("2027-12-01")!).toISOString()).toBe(
+      "2027-11-30T22:00:00.000Z",
+    );
+  });
+  it("returns stable countdown units without going negative", () => {
+    const target = civilMidnightUtc("2027-09-30")!;
+    expect(countdownToCivilDate("2027-09-30", target - 90061000)).toMatchObject({
+      days: 1,
+      hours: 1,
+      minutes: 1,
+      seconds: 1,
+    });
+    expect(countdownToCivilDate("2027-09-30", target + 1)?.totalMs).toBe(0);
+  });
+});
+
 describe("scope and credentials", () => {
   it("refuses a record from another event", () =>
     expect(() =>
