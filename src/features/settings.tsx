@@ -14,8 +14,8 @@ const fields = [
   ["start_date", "startDate", "date"],
   ["end_date", "endDate", "date"],
   ["base_currency", "baseCurrency", "text"],
-  ["description", "description", "text"],
-  ["manager_notes", "managerNotes", "text"],
+  ["description", "description", "textarea"],
+  ["manager_notes", "managerNotes", "textarea"],
 ];
 const values = (event: EventRow) =>
   Object.fromEntries(
@@ -92,17 +92,30 @@ export default function Settings() {
             {fields.map(([key, label, type]) => (
               <label key={key}>
                 {t(label)}
-                <input
-                  name={key}
-                  type={type}
-                  value={draft[key]}
-                  onChange={(e) => {
-                    setDraft((d) => ({ ...d, [key]: e.target.value }));
-                    setSaved(false);
-                  }}
-                  required={key === "name"}
-                  disabled={pending}
-                />
+                {type === "textarea" ? (
+                  <textarea
+                    name={key}
+                    rows={4}
+                    value={draft[key]}
+                    onChange={(e) => {
+                      setDraft((d) => ({ ...d, [key]: e.target.value }));
+                      setSaved(false);
+                    }}
+                    disabled={pending || !writable}
+                  />
+                ) : (
+                  <input
+                    name={key}
+                    type={type}
+                    value={draft[key]}
+                    onChange={(e) => {
+                      setDraft((d) => ({ ...d, [key]: e.target.value }));
+                      setSaved(false);
+                    }}
+                    required={key === "name"}
+                    disabled={pending || !writable}
+                  />
+                )}
               </label>
             ))}
           </div>
