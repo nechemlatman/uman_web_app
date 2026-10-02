@@ -1091,7 +1091,8 @@ tbody tr:hover {
   .event-banner {
     padding: var(--space-6);
     min-height: 190px;
-    gap: var(--space-4);
+    gap: var(--space-5);
+    flex-direction: column;
   }
   .event-banner h2 {
     font-size: var(--text-2xl);
