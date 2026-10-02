@@ -369,7 +369,10 @@ export function Editor({
           <button
             className="primary"
             disabled={
-              pending || !writable || (warnings.length > 0 && !reviewed)
+              pending ||
+              !writable ||
+              (!!row && !dirty) ||
+              (warnings.length > 0 && !reviewed)
             }
           >
             {t(pending ? "saving" : row ? "save" : "create")}
