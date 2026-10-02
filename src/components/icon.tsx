@@ -16,7 +16,8 @@ const paths: Record<string, string> = {
   arrow: "M5 12h14 M13 6l6 6-6 6",
   menu: "M3 6h18 M3 12h18 M3 18h18",
   logout: "M9 3H3v18h6 M10 12h11 M17 8l4 4-4 4",
-  location:\n    "M12 21s7-5.2 7-12a7 7 0 1 0-14 0c0 6.8 7 12 7 12z M12 6a3 3 0 1 1 0 6 3 3 0 0 1 0-6",
+  location:
+    "M12 21s7-5.2 7-12a7 7 0 1 0-14 0c0 6.8 7 12 7 12z M12 6a3 3 0 1 1 0 6 3 3 0 0 1 0-6",
 };
 export function Icon({ name, size = 20 }: { name: string; size?: number }) {
   return (
