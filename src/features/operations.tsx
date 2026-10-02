@@ -214,11 +214,14 @@ function Search() {
   const kinds: Kind[] = [
     "person",
     "flight",
+    "trip",
     "apartment",
     "room",
+    "sleeping_place",
     "driver",
     "vehicle",
     "task",
+    "apartment_issue",
   ];
   const queries = useQueries({
     queries: kinds.map((kind) => ({
@@ -383,6 +386,8 @@ export default function Operations() {
         {[
           ["people", "participants", "person", "people"],
           ["assignments", "bedAssignments", "availability", "stay"],
+          ["flights", "flights", "flight", "travel"],
+          ["trips", "trips", "trip", "travel"],
           ["tasks", "openTasks", "task", "operations"],
           ["issues", "openIssues", "apartment_issue", "alerts"],
         ].map(([key, label, kind, icon]) => (
