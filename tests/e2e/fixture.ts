@@ -61,7 +61,19 @@ export async function fixture(page: Page) {
       ],
       events: [{ ...event }],
     },
-    state = { conflict: false, warnings: false, denied: false };
+    state = {
+      conflict: false,
+      warnings: false,
+      denied: false,
+      alerts: [] as Array<{
+        id: string;
+        rule: string;
+        kind: string;
+        entity_id: string;
+        label: string;
+        severity: string;
+      }>,
+    };
   const token =
     btoa(JSON.stringify({ alg: "HS256", typ: "JWT" })) +
     "." +
@@ -151,8 +163,16 @@ export async function fixture(page: Page) {
       return respond({ id: actor, email: "manager@example.test" });
     if (name === "web_command_center")
       return respond({
-        counts: { people: 1, assignments: 0, tasks: 0, issues: 0, beds: 0 },
-        alerts: [],
+        counts: {
+          people: 1,
+          assignments: 0,
+          tasks: 0,
+          issues: 0,
+          beds: 0,
+          flights: (records.flights ?? []).length,
+          trips: (records.trips ?? []).length,
+        },
+        alerts: state.alerts,
         schedule: [],
         finance: {
           payments: "0",
