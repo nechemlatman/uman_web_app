@@ -317,3 +317,21 @@ test("mobile bottom navigation prioritizes frequent manager destinations", async
   await expect(page).toHaveURL(new RegExp("/e/" + eventId + "/payment$"));
 });
 
+test("record details surface operational alerts in context", async ({ page }) => {
+  const f = await fixture(page);
+  f.state.alerts.push({
+    id: "alert-person-passport",
+    rule: "PASSPORT_EXPIRY_RISK",
+    kind: "person",
+    entity_id: personId,
+    label: "Browser Participant",
+    severity: "HIGH",
+  });
+  await login(page);
+  await page.goto("/e/" + eventId + "/person/" + personId);
+  await expect(
+    page.getByRole("heading", { name: "Attention needed", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Passport validity needs review", { exact: true })).toBeVisible();
+});
+
