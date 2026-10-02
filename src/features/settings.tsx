@@ -33,6 +33,10 @@ export default function Settings() {
   const [compare, setCompare] = useState(false);
   const original = useRef(JSON.stringify(values(event)));
   const dirty = JSON.stringify(draft) !== original.current;
+  const invalidDates =
+    !!draft.start_date &&
+    !!draft.end_date &&
+    draft.start_date >= draft.end_date;
   const blocker = useBlocker(dirty);
   useEffect(() => {
     if (blocker.state === "blocked") {
@@ -119,6 +123,11 @@ export default function Settings() {
               </label>
             ))}
           </div>
+          {invalidDates && (
+            <p className="notice error" role="alert">
+              {t("dateOrder")}
+            </p>
+          )}
           {!!error && <ErrorState error={error} />}
           {!!error && errorCode(error) === "conflict" && (
             <button type="button" onClick={() => setCompare(true)}>
@@ -160,7 +169,7 @@ export default function Settings() {
           )}
           <div className="form-actions">
             {saved && <span role="status">{t("saved")}</span>}
-            <button className="primary" disabled={!writable || pending}>
+            <button className="primary" disabled={!writable || pending || invalidDates}>
               {t(pending ? "saving" : "save")}
             </button>
           </div>
