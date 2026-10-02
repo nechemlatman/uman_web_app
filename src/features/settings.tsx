@@ -147,7 +147,10 @@ export default function Settings() {
           )}
           <div className="form-actions">
             {saved && <span role="status">{t("saved")}</span>}
-            <button className="primary" disabled={!writable || pending}>
+            <button
+              className="primary"
+              disabled={!writable || pending || !dirty}
+            >
               {t(pending ? "saving" : "save")}
             </button>
           </div>
