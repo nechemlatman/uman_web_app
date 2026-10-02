@@ -655,7 +655,7 @@ tbody tr:hover {
 }
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-8);
 }
@@ -952,6 +952,9 @@ tbody tr:hover {
   }
   .topbar {
     padding-inline: var(--space-6);
+  }
+  .stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .quick-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
