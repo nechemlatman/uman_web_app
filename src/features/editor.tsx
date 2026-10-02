@@ -60,7 +60,7 @@ export function Editor({
   };
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!writable || pending) return;
+    if (!writable || pending || (!!row && !dirty)) return;
     const encoded = encodeFields(kind, fields, base);
     const issues = validate(kind, encoded);
     setErrors(issues);
