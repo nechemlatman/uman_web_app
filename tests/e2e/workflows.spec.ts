@@ -283,3 +283,14 @@ test("mobile Hebrew navigation keeps finance primary and More controls the drawe
   await page.keyboard.press("Escape");
   await expect(page.locator("#event-navigation")).not.toBeVisible();
 });
+
+
+test("global search opens from the manager keyboard shortcut", async ({ page }) => {
+  await fixture(page);
+  await login(page);
+  await page.keyboard.press("Control+k");
+  await expect(
+    page.getByRole("heading", { name: "Global search", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Search everything" })).toBeFocused();
+});
