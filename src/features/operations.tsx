@@ -289,16 +289,27 @@ function EventCountdown({
     return () => window.clearInterval(timer);
   }, [startDate]);
   const countdown = startDate ? countdownToCivilDate(startDate, now) : null;
-  const localTime = new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
-    timeZone: EVENT_TIME_ZONE,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(new Date(now));
+  const localTime = new Intl.DateTimeFormat(
+    locale === "he" ? "he-IL" : "en-GB",
+    {
+      timeZone: EVENT_TIME_ZONE,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    },
+  ).format(new Date(now));
   if (!countdown || countdown.totalMs <= 0) {
     return (
       <div className="countdown">
-        <span>{t(!startDate ? "notSet" : endDate && today > endDate ? "eventEnded" : "inProgress")}</span>
+        <span>
+          {t(
+            !startDate
+              ? "notSet"
+              : endDate && today > endDate
+                ? "eventEnded"
+                : "inProgress",
+          )}
+        </span>
         <span className="event-local-time">
           {t("localTime")} · <bdi>{localTime}</bdi>
         </span>
@@ -317,7 +328,9 @@ function EventCountdown({
       <div className="countdown-units" aria-label={t("countdown")}>
         {units.map(([value, label]) => (
           <div className="countdown-unit" key={label}>
-            <strong>{String(value).padStart(label === "days" ? 1 : 2, "0")}</strong>
+            <strong>
+              {String(value).padStart(label === "days" ? 1 : 2, "0")}
+            </strong>
             <small>{t(label)}</small>
           </div>
         ))}
