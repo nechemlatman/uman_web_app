@@ -301,9 +301,10 @@ test("global search opens from the manager keyboard shortcut", async ({ page }) 
   await expect(
     page.getByRole("heading", { name: "Search across the event", exact: true }),
   ).toBeVisible();
-  await expect(\n    page.getByRole("textbox", { name: "Search across the event" }),\n  ).toBeFocused();
+  await expect(
+    page.getByRole("textbox", { name: "Search across the event" }),
+  ).toBeFocused();
 });
-
 
 test("global search covers transport and apartment issues", async ({ page }) => {
   const f = await fixture(page);
