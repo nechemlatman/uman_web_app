@@ -25,6 +25,14 @@ npm run dev
 
 Open http://localhost:5173. An existing .env.local is already configured on the implementation machine; do not overwrite it. Only the publishable/anon key belongs in frontend configuration. The client rejects service-role configuration.
 
+For temporary testing from a phone on the same trusted Wi-Fi/LAN, start the explicit LAN server:
+
+~~~powershell
+npm run dev:lan
+~~~
+
+Then open the computer's LAN IPv4 address with port 5173 from the phone, for example `http://192.168.x.x:5173`. Windows Firewall may prompt for private-network access. Do not expose the Vite development server directly to the public internet; use the HTTPS production deployment flow below for remote access.
+
 ## Stack and structure
 
 React 19, TypeScript, Vite 7, React Router, TanStack Query, Supabase JS and Zod. Dependencies are pinned in package-lock.json.
