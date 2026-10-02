@@ -41,7 +41,11 @@ export function civilMidnightUtc(
 ): number | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(civilDate)) return null;
   const desiredLocal = Date.parse(civilDate + "T00:00:00Z");
-  if (!Number.isFinite(desiredLocal)) return null;
+  if (
+    !Number.isFinite(desiredLocal) ||
+    new Date(desiredLocal).toISOString().slice(0, 10) !== civilDate
+  )
+    return null;
   let target = desiredLocal;
   for (let i = 0; i < 3; i += 1) {
     target = desiredLocal - zoneOffsetMs(target, timeZone);
