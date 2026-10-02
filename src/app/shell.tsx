@@ -121,7 +121,11 @@ export function Shell() {
             >
               <Icon name="menu" />
             </button>
-            <span className={"sync-status " + sync}>
+            <span
+              className={"sync-status " + sync}
+              role="status"
+              aria-live="polite"
+            >
               <span className="status-dot" />
               {t(sync)}
             </span>
