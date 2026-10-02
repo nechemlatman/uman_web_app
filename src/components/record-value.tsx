@@ -31,6 +31,19 @@ export function RecordValue({ field, row }: { field: Field; row: RecordRow }) {
     return <span>{t(v ? "active" : "INACTIVE")}</span>;
   if (field.type === "date" || field.type === "datetime-local")
     return <bdi>{formatDate(v, locale, field.type === "datetime-local")}</bdi>;
+  if (field.key === "address" || field.key === "hebrew_address")
+    return (
+      <a
+        href={
+          "https://www.google.com/maps/search/?api=1&query=" +
+          encodeURIComponent(String(v))
+        }
+        target="_blank"
+        rel="noreferrer"
+      >
+        <bdi>{String(v)}</bdi>
+      </a>
+    );
   if (field.type === "tel") {
     const number = String(v);
     if (field.key === "whatsapp_phone")
