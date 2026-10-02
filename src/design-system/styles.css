@@ -537,7 +537,17 @@ tbody tr:hover {
   font-size: var(--text-sm);
 }
 .related-section {
-  margin-block: var(--space-8);
+  margin-block: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.related-section .section-heading {
+  margin-bottom: var(--space-3);
+}
+.related-section .table-wrap {
+  box-shadow: none;
 }
 .notice {
   padding: var(--space-4) var(--space-5);
