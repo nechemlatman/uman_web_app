@@ -18,6 +18,7 @@ export const en = {
   limitedResults:
     "Showing the first 100 items. Open the source lists for all records.",
   dashboard: "Command center",
+  openMenu: "Open more navigation",
   people: "People",
   travel: "Travel & transport",
   stay: "Accommodation",
@@ -381,6 +382,7 @@ export const he: Record<MessageKey, string> = {
   limitedResults:
     "מוצגים 100 הפריטים הראשונים. כל הרשומות זמינות ברשימות המקור.",
   dashboard: "מרכז בקרה",
+  openMenu: "פתיחת תפריט נוסף",
   people: "אנשים",
   travel: "טיסות והסעות",
   stay: "לינה",
