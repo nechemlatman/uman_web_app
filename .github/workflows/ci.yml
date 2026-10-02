@@ -43,7 +43,10 @@ jobs:
         run: npm run test:db
 
       - name: Format check
-        run: npm run format:check
+        run: |
+          npm run format
+          git diff --check
+          git diff --exit-code
 
       - name: Production build
         run: npm run build
