@@ -65,7 +65,12 @@ for (const width of [1440, 768, 390])
         ),
       ).toBe(true);
       await page.screenshot({
-        path: "test-results/dashboard-" + testInfo.project.name + "-" + width + "-en.png",
+        path:
+          "test-results/dashboard-" +
+          testInfo.project.name +
+          "-" +
+          width +
+          "-en.png",
         fullPage: true,
       });
       await page.getByRole("button", { name: "עברית", exact: true }).click();
@@ -76,7 +81,12 @@ for (const width of [1440, 768, 390])
         ),
       ).toBe(true);
       await page.screenshot({
-        path: "test-results/dashboard-" + testInfo.project.name + "-" + width + "-he.png",
+        path:
+          "test-results/dashboard-" +
+          testInfo.project.name +
+          "-" +
+          width +
+          "-he.png",
         fullPage: true,
       });
       await page.goto("/e/" + eventId + "/person");
@@ -275,7 +285,9 @@ test("mobile Hebrew menu opens and closes with Escape", async ({ page }) => {
   await expect(page.locator("#event-navigation")).not.toBeVisible();
 });
 
-test("global search covers ground transport and apartment issues", async ({ page }) => {
+test("global search covers ground transport and apartment issues", async ({
+  page,
+}) => {
   const f = await fixture(page);
   f.records.trips = [
     {
@@ -299,25 +311,41 @@ test("global search covers ground transport and apartment issues", async ({ page
   await page.goto("/e/" + eventId + "/search");
   const search = page.getByRole("textbox", { name: "Search everything" });
   await search.fill("Warsaw");
-  await expect(page.getByRole("link", { name: "Warsaw Airport → Uman" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Warsaw Airport → Uman" }),
+  ).toBeVisible();
   await search.fill("Hot water");
-  await expect(page.getByRole("link", { name: "Hot water pump" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Hot water pump" }),
+  ).toBeVisible();
 });
 
-test("mobile bottom navigation prioritizes frequent manager destinations", async ({ page }) => {
+test("mobile bottom navigation prioritizes frequent manager destinations", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await fixture(page);
   await login(page);
   const mobile = page.locator(".mobile-nav");
-  await expect(mobile.getByRole("link", { name: "People", exact: true })).toBeVisible();
-  await expect(mobile.getByRole("link", { name: "Accommodation", exact: true })).toBeVisible();
-  await expect(mobile.getByRole("link", { name: "Finance", exact: true })).toBeVisible();
-  await expect(mobile.getByRole("button", { name: "Open more navigation", exact: true })).toBeVisible();
+  await expect(
+    mobile.getByRole("link", { name: "People", exact: true }),
+  ).toBeVisible();
+  await expect(
+    mobile.getByRole("link", { name: "Accommodation", exact: true }),
+  ).toBeVisible();
+  await expect(
+    mobile.getByRole("link", { name: "Finance", exact: true }),
+  ).toBeVisible();
+  await expect(
+    mobile.getByRole("button", { name: "Open more navigation", exact: true }),
+  ).toBeVisible();
   await mobile.getByRole("link", { name: "Finance", exact: true }).click();
   await expect(page).toHaveURL(new RegExp("/e/" + eventId + "/payment$"));
 });
 
-test("record details surface operational alerts in context", async ({ page }) => {
+test("record details surface operational alerts in context", async ({
+  page,
+}) => {
   const f = await fixture(page);
   f.state.alerts.push({
     id: "alert-person-passport",
@@ -332,15 +360,21 @@ test("record details surface operational alerts in context", async ({ page }) =>
   await expect(
     page.getByRole("heading", { name: "Attention needed", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("Passport validity needs review", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Passport validity needs review", { exact: true }),
+  ).toBeVisible();
 });
 
-test("person detail exposes a direct WhatsApp contact action", async ({ page }) => {
+test("person detail exposes a direct WhatsApp contact action", async ({
+  page,
+}) => {
   const f = await fixture(page);
   f.records.people[0].whatsapp_phone = "+972 50 123 4567";
   await login(page);
   await page.goto("/e/" + eventId + "/person/" + personId);
-  const whatsapp = page.getByRole("link", { name: "+972 50 123 4567", exact: true });
+  const whatsapp = page.getByRole("link", {
+    name: "+972 50 123 4567",
+    exact: true,
+  });
   await expect(whatsapp).toHaveAttribute("href", "https://wa.me/972501234567");
 });
-
