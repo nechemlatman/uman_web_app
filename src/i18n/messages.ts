@@ -285,7 +285,7 @@ export const en = {
   loadMore: "Load more",
   noMatch: "No matches",
   searchAll: "Search across the event",
-  globalSearch: "Search people, flights, transport, accommodation, tasks and issues",
+  globalSearch:\n    "Search people, flights, transport, accommodation, tasks and issues",
   searchPrompt: "Enter at least two characters.",
   minute: "min",
   overdue: "Overdue",
