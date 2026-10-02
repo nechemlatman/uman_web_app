@@ -124,12 +124,17 @@ export function Records({
               <p className="eyebrow">{t(catalog[kind].group)}</p>
               <h1>{t(catalog[kind].label)}</h1>
             </div>
-            {writable && (
-              <Link className="button primary" to={add}>
-                <Icon name="plus" />
-                {t("add")}
-              </Link>
-            )}
+            <div className="actions page-actions">
+              <button type="button" onClick={() => window.print()}>
+                {t("print")}
+              </button>
+              {writable && (
+                <Link className="button primary" to={add}>
+                  <Icon name="plus" />
+                  {t("add")}
+                </Link>
+              )}
+            </div>
           </div>
           <ModuleTabs kind={kind} />
         </>
