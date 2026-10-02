@@ -11,7 +11,7 @@ import { catalog } from "../domain/catalog";
 import { title, type Kind } from "../domain/model";
 import { Icon } from "../components/icon";
 import { Badge, Empty, ErrorState, Loading } from "../components/states";
-import { countdownToCivilDate } from "../domain/time";
+import { countdownToCivilDate, EVENT_TIME_ZONE } from "../domain/time";
 function auditLabel(table: string) {
   const kind = (Object.keys(tables) as Kind[]).find((k) => tables[k] === table);
   return kind
@@ -290,7 +290,7 @@ function EventCountdown({
   }, [startDate]);
   const countdown = startDate ? countdownToCivilDate(startDate, now) : null;
   const localTime = new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
-    timeZone: "Europe/Kyiv",
+    timeZone: EVENT_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
