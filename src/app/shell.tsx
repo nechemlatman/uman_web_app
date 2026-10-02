@@ -132,7 +132,12 @@ export function Shell() {
           <Outlet key={location.pathname} />
         </main>
         <nav className="mobile-nav" aria-label={t("more")}>
-          {nav.slice(0, 5).map(([path, label]) => (
+          {[
+            ["", "dashboard"],
+            ["person", "people"],
+            ["apartment", "stay"],
+            ["payment", "finance"],
+          ].map(([path, label]) => (
             <NavLink
               to={root + (path ? "/" + path : "")}
               end={path === ""}
@@ -142,6 +147,16 @@ export function Shell() {
               <span>{t(label)}</span>
             </NavLink>
           ))}
+          <button
+            type="button"
+            className="mobile-more"
+            aria-expanded={open}
+            aria-controls="event-navigation"
+            onClick={() => setOpen(true)}
+          >
+            <Icon name="menu" />
+            <span>{t("more")}</span>
+          </button>
         </nav>
       </div>
     </div>
