@@ -71,14 +71,14 @@ npm run typecheck
 npm run lint
 npm test
 npm run test:db
-node node_modules/@playwright/test/cli.js install chromium
+node node_modules/@playwright/test/cli.js install chromium firefox webkit
 npm run test:e2e
 npm run test:hmr
 npm run format:check
 npm run build
 ~~~
 
-Browser tests intercept Supabase HTTP/WebSocket traffic and use isolated fixtures. They do not write test people or money into the hosted project. PostgreSQL checks run inside a disposable PGlite database. Test screenshots/traces and build output are ignored by Git.
+Browser tests run against Chromium, Firefox and an emulated iPhone WebKit project. They intercept Supabase HTTP/WebSocket traffic and use isolated fixtures, so they do not write test people or money into the hosted project. PostgreSQL checks run inside a disposable PGlite database. Test screenshots/traces and build output are ignored by Git.
 
 ## Production build and deployment
 
@@ -103,5 +103,5 @@ The manifest supports standalone display and includes an SVG icon. Installation 
 
 Master Spec 2.6 explicitly defers participant expense allocation/shares and unpaid balances under OPD-002/003. This app shows original payment/expense records, recorded conversions and event totals. It never invents debt or an unpaid alert.
 
-Derived alerts are read-time checks with deterministic identities; manager acknowledgment/dismissal persistence and required-contact policy editing are not included. The schedule and alert summaries are bounded to 100 entries and state this limit. Full source lists paginate at 40 rows. Printing/export, self-service account recovery, public signup and event membership editing are not exposed as unfinished actions.
+Derived alerts are read-time checks with deterministic identities; manager acknowledgment/dismissal persistence and required-contact policy editing are not included. The schedule and alert summaries are bounded to 100 entries and state this limit. Full source lists paginate at 40 rows. Operational lists and record packets have browser print layouts. CSV/data export, self-service account recovery, public signup and event membership editing are not exposed as unfinished actions.
 
