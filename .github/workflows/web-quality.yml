@@ -77,3 +77,14 @@ jobs:
 
       - name: Hot-reload regression
         run: npm run test:hmr
+
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
