@@ -263,13 +263,17 @@ test("an offline edit stays in the form and logout requires acknowledging unsave
   ).toBeEnabled();
 });
 
-test("mobile Hebrew menu opens and closes with Escape", async ({ page }) => {
+test("mobile Hebrew navigation keeps finance primary and More controls the drawer", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await fixture(page);
   await login(page);
   await page.getByRole("button", { name: "עברית", exact: true }).click();
+  const mobileNav = page.locator(".mobile-nav");
+  await expect(mobileNav.getByRole("link", { name: "כספים", exact: true })).toBeVisible();
   await expect(page.locator("#event-navigation")).not.toBeVisible();
-  await page.getByRole("button", { name: "עוד", exact: true }).click();
+  await mobileNav.getByRole("button", { name: "עוד", exact: true }).click();
   await expect(page.locator("#event-navigation")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("#event-navigation")).not.toBeVisible();
