@@ -1033,7 +1033,8 @@ tbody tr:hover {
       max(var(--space-2), env(safe-area-inset-bottom));
     z-index: 30;
   }
-  .mobile-nav a {
+  .mobile-nav a,
+  .mobile-nav .mobile-more {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1043,9 +1044,21 @@ tbody tr:hover {
     font-size: 10px;
     min-height: var(--control);
   }
-  .mobile-nav a.active {
+  .mobile-nav .mobile-more {
+    width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font-weight: 400;
+  }
+  .mobile-nav a.active,
+  .mobile-nav .mobile-more[aria-expanded="true"] {
     color: var(--navy);
     font-weight: 700;
+  }
+  .mobile-nav .mobile-more:hover {
+    border-color: transparent;
   }
   .page-heading {
     align-items: flex-start;
