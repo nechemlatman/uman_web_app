@@ -303,3 +303,74 @@ test("global search opens from the manager keyboard shortcut", async ({ page }) 
   ).toBeVisible();
   await expect(\n    page.getByRole("textbox", { name: "Search everything" }),\n  ).toBeFocused();
 });
+
+
+test("global search covers transport and apartment issues", async ({ page }) => {
+  const f = await fixture(page);
+  f.records.trips = [
+    {
+      ...f.common,
+      id: "88888888-8888-4888-8888-888888888888",
+      origin: "Warsaw Airport",
+      destination: "Uman",
+      status: "PLANNED",
+    },
+  ];
+  f.records.apartment_issues = [
+    {
+      ...f.common,
+      id: "99999999-9999-4999-8999-999999999999",
+      apartment_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      title: "Hot water pump",
+      priority: "HIGH",
+      status: "OPEN",
+    },
+  ];
+  await login(page);
+  await page.goto("/e/" + eventId + "/search");
+  const search = page.getByRole("textbox", { name: "Global search" });
+  await search.fill("Warsaw");
+  await expect(
+    page.getByRole("link", { name: "Warsaw Airport → Uman" }),
+  ).toBeVisible();
+  await search.fill("Hot water");
+  await expect(
+    page.getByRole("link", { name: "Hot water pump" }),
+  ).toBeVisible();
+});
+
+test("record details surface operational alerts in context", async ({ page }) => {
+  const f = await fixture(page);
+  f.state.alerts.push({
+    id: "alert-person-passport",
+    rule: "PASSPORT_EXPIRY_RISK",
+    kind: "person",
+    entity_id: personId,
+    label: "Browser Participant",
+    severity: "HIGH",
+  });
+  await login(page);
+  await page.goto("/e/" + eventId + "/person/" + personId);
+  await expect(
+    page.getByRole("heading", { name: "Alerts", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Passport validity needs review", { exact: true }),
+  ).toBeVisible();
+});
+
+test("person detail exposes direct WhatsApp and email actions", async ({
+  page,
+}) => {
+  const f = await fixture(page);
+  f.records.people[0].whatsapp_phone = "+972 50 123 4567";
+  f.records.people[0].email = "person@example.test";
+  await login(page);
+  await page.goto("/e/" + eventId + "/person/" + personId);
+  await expect(
+    page.getByRole("link", { name: "+972 50 123 4567", exact: true }),
+  ).toHaveAttribute("href", "https://wa.me/972501234567");
+  await expect(
+    page.getByRole("link", { name: "person@example.test", exact: true }),
+  ).toHaveAttribute("href", "mailto:person@example.test");
+});
