@@ -214,11 +214,13 @@ function Search() {
   const kinds: Kind[] = [
     "person",
     "flight",
+    "trip",
     "apartment",
     "room",
     "driver",
     "vehicle",
     "task",
+    "apartment_issue",
   ];
   const queries = useQueries({
     queries: kinds.map((kind) => ({
