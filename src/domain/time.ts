@@ -11,7 +11,9 @@ function zonedParts(timestamp: number, timeZone: string) {
     minute: "2-digit",
     second: "2-digit",
   }).formatToParts(new Date(timestamp));
-  const values = Object.fromEntries(\n    parts.map((part) => [part.type, part.value]),\n  );
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
   return {
     year: Number(values.year),
     month: Number(values.month),
