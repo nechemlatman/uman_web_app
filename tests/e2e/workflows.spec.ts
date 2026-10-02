@@ -14,6 +14,9 @@ test("manager creates a person and retains their draft through a conflict", asyn
   ).toBeVisible();
   expect(f.calls.filter((c) => c.name === "save_person")).toHaveLength(1);
   await page.goto("/e/" + eventId + "/person/" + personId + "/edit");
+  await expect(
+    page.getByRole("button", { name: "Save changes", exact: true }),
+  ).toBeDisabled();
   await page.locator("#field-first_name").fill("My retained draft");
   f.records.people[0].phone = "123456789";
   f.state.conflict = true;
