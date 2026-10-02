@@ -126,7 +126,7 @@ export function Records({
             </div>
             <div className="actions">
               <button type="button" onClick={() => window.print()}>
-                {t("print")}
+                {t("printPage")}
               </button>
               {writable && (
                 <Link className="button primary" to={add}>
