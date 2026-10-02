@@ -683,6 +683,33 @@ tbody tr:hover {
   font: 400 var(--text-hero) / 1.1 var(--serif);
   color: #e4c58c;
 }
+.countdown-units {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(52px, 1fr));
+  gap: var(--space-3);
+}
+.countdown-unit {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+}
+.countdown-unit strong {
+  font: 400 var(--text-2xl) / 1 var(--serif);
+  color: #e4c58c;
+  font-variant-numeric: tabular-nums;
+}
+.countdown-unit small {
+  color: #cbd8e2;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.event-local-time {
+  margin-top: var(--space-3);
+  color: #cbd8e2;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
 .banner-rule {
   width: var(--space-12);
   height: 2px;
@@ -1121,6 +1148,16 @@ tbody tr:hover {
   }
   .countdown strong {
     font-size: var(--text-3xl);
+  }
+  .countdown-units {
+    grid-template-columns: repeat(4, minmax(38px, 1fr));
+    gap: var(--space-1);
+  }
+  .countdown-unit strong {
+    font-size: var(--text-xl);
+  }
+  .event-local-time {
+    font-size: 10px;
   }
   .event-banner p {
     font-size: var(--text-xs);
