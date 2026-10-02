@@ -112,7 +112,10 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
       </div>
       {!!error && <ErrorState error={error} />}
       {recordAlerts.length > 0 && (
-        <section className="card record-attention" aria-labelledby="record-attention-title">
+        <section
+          className="card record-attention"
+          aria-labelledby="record-attention-title"
+        >
           <div className="section-heading">
             <h2 id="record-attention-title">{t("alerts")}</h2>
             <Badge value={recordAlerts[0].severity} />
@@ -120,7 +123,9 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
           <div className="operational-list">
             {recordAlerts.map((alert) => (
               <div
-                className={"operational-row alert-" + alert.severity.toLowerCase()}
+                className={
+                  "operational-row alert-" + alert.severity.toLowerCase()
+                }
                 key={alert.id}
               >
                 <div>
