@@ -14,6 +14,9 @@ test("manager creates a person and retains their draft through a conflict", asyn
   ).toBeVisible();
   expect(f.calls.filter((c) => c.name === "save_person")).toHaveLength(1);
   await page.goto("/e/" + eventId + "/person/" + personId + "/edit");
+  await expect(
+    page.getByRole("button", { name: "Save changes", exact: true }),
+  ).toBeDisabled();
   await page.locator("#field-first_name").fill("My retained draft");
   f.records.people[0].phone = "123456789";
   f.state.conflict = true;
@@ -52,7 +55,7 @@ test("task creation uses the server mutation contract", async ({ page }) => {
 for (const width of [1440, 768, 390])
   test(
     "responsive English and Hebrew dashboard at " + width,
-    async ({ page }) => {
+    async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await fixture(page);
       await login(page);
@@ -65,7 +68,12 @@ for (const width of [1440, 768, 390])
         ),
       ).toBe(true);
       await page.screenshot({
-        path: "test-results/dashboard-" + width + "-en.png",
+        path:
+          "test-results/dashboard-" +
+          testInfo.project.name +
+          "-" +
+          width +
+          "-en.png",
         fullPage: true,
       });
       await page.getByRole("button", { name: "עברית", exact: true }).click();
@@ -76,7 +84,12 @@ for (const width of [1440, 768, 390])
         ),
       ).toBe(true);
       await page.screenshot({
-        path: "test-results/dashboard-" + width + "-he.png",
+        path:
+          "test-results/dashboard-" +
+          testInfo.project.name +
+          "-" +
+          width +
+          "-he.png",
         fullPage: true,
       });
       await page.goto("/e/" + eventId + "/person");
@@ -263,14 +276,108 @@ test("an offline edit stays in the form and logout requires acknowledging unsave
   ).toBeEnabled();
 });
 
-test("mobile Hebrew menu opens and closes with Escape", async ({ page }) => {
+test("mobile Hebrew navigation keeps finance primary and More controls the drawer", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await fixture(page);
   await login(page);
   await page.getByRole("button", { name: "עברית", exact: true }).click();
+  const mobileNav = page.locator(".mobile-nav");
+  await expect(
+    mobileNav.getByRole("link", { name: "כספים", exact: true }),
+  ).toBeVisible();
   await expect(page.locator("#event-navigation")).not.toBeVisible();
-  await page.getByRole("button", { name: "עוד", exact: true }).click();
+  await mobileNav.getByRole("button", { name: "עוד", exact: true }).click();
   await expect(page.locator("#event-navigation")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("#event-navigation")).not.toBeVisible();
+});
+
+test("global search opens from the manager keyboard shortcut", async ({
+  page,
+}) => {
+  await fixture(page);
+  await login(page);
+  await page.keyboard.press("Control+k");
+  await expect(
+    page.getByRole("heading", { name: "Search across the event", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Search across the event" }),
+  ).toBeFocused();
+});
+
+test("global search covers transport and apartment issues", async ({
+  page,
+}) => {
+  const f = await fixture(page);
+  f.records.trips = [
+    {
+      ...f.common,
+      id: "88888888-8888-4888-8888-888888888888",
+      origin: "Warsaw Airport",
+      destination: "Uman",
+      status: "PLANNED",
+    },
+  ];
+  f.records.apartment_issues = [
+    {
+      ...f.common,
+      id: "99999999-9999-4999-8999-999999999999",
+      apartment_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      title: "Hot water pump",
+      priority: "HIGH",
+      status: "OPEN",
+    },
+  ];
+  await login(page);
+  await page.goto("/e/" + eventId + "/search");
+  const search = page.getByRole("textbox", { name: "Search across the event" });
+  await search.fill("Warsaw");
+  await expect(
+    page.getByRole("link", { name: "Warsaw Airport → Uman" }),
+  ).toBeVisible();
+  await search.fill("Hot water");
+  await expect(
+    page.getByRole("link", { name: "Hot water pump" }),
+  ).toBeVisible();
+});
+
+test("record details surface operational alerts in context", async ({
+  page,
+}) => {
+  const f = await fixture(page);
+  f.state.alerts.push({
+    id: "alert-person-passport",
+    rule: "PASSPORT_EXPIRY_RISK",
+    kind: "person",
+    entity_id: personId,
+    label: "Browser Participant",
+    severity: "HIGH",
+  });
+  await login(page);
+  await page.goto("/e/" + eventId + "/person/" + personId);
+  await expect(
+    page.getByRole("heading", { name: "Attention needed", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Passport validity needs review", { exact: true }),
+  ).toBeVisible();
+});
+
+test("person detail exposes direct WhatsApp and email actions", async ({
+  page,
+}) => {
+  const f = await fixture(page);
+  f.records.people[0].whatsapp_phone = "+972 50 123 4567";
+  f.records.people[0].email = "person@example.test";
+  await login(page);
+  await page.goto("/e/" + eventId + "/person/" + personId);
+  await expect(
+    page.getByRole("link", { name: "+972 50 123 4567", exact: true }),
+  ).toHaveAttribute("href", "https://wa.me/972501234567");
+  await expect(
+    page.getByRole("link", { name: "person@example.test", exact: true }),
+  ).toHaveAttribute("href", "mailto:person@example.test");
 });

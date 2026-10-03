@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { operationalInput } from "../domain/time";
+import { useEffect, useState } from "react";
 import { useSession } from "../app/session";
 import { tables } from "../domain/model";
 import { useDebounced } from "../app/use-debounced";
@@ -11,6 +12,7 @@ import { catalog } from "../domain/catalog";
 import { title, type Kind } from "../domain/model";
 import { Icon } from "../components/icon";
 import { Badge, Empty, ErrorState, Loading } from "../components/states";
+import { countdownToCivilDate, EVENT_TIME_ZONE } from "../domain/time";
 function auditLabel(table: string) {
   const kind = (Object.keys(tables) as Kind[]).find((k) => tables[k] === table);
   return kind
@@ -129,11 +131,14 @@ function Schedule({ data, limit = 100 }: { data: Summary; limit?: number }) {
     .filter(
       (s) =>
         (!kind || s.kind === kind) &&
-        (!date || (s.civil_date ?? s.at.slice(0, 10)) === date),
+        (!date ||
+          (s.civil_date ?? operationalInput(s.at).slice(0, 10)) === date),
     )
     .slice(0, limit);
   const days = [
-    ...new Set(rows.map((s) => s.civil_date ?? s.at.slice(0, 10))),
+    ...new Set(
+      rows.map((s) => s.civil_date ?? operationalInput(s.at).slice(0, 10)),
+    ),
   ].sort();
   return (
     <>
@@ -173,7 +178,11 @@ function Schedule({ data, limit = 100 }: { data: Summary; limit?: number }) {
             )}
             <div className="operational-list">
               {rows
-                .filter((s) => (s.civil_date ?? s.at.slice(0, 10)) === day)
+                .filter(
+                  (s) =>
+                    (s.civil_date ?? operationalInput(s.at).slice(0, 10)) ===
+                    day,
+                )
                 .map((s, i) => (
                   <Link
                     className="operational-row"
@@ -214,11 +223,14 @@ function Search() {
   const kinds: Kind[] = [
     "person",
     "flight",
+    "trip",
     "apartment",
     "room",
+    "sleeping_place",
     "driver",
     "vehicle",
     "task",
+    "apartment_issue",
   ];
   const queries = useQueries({
     queries: kinds.map((kind) => ({
@@ -268,6 +280,82 @@ function Search() {
     </>
   );
 }
+function EventCountdown({
+  startDate,
+  endDate,
+  today,
+}: {
+  startDate: string | null;
+  endDate: string | null;
+  today: string;
+}) {
+  const { t, locale } = useI18n();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!startDate) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [startDate]);
+
+  const countdown = startDate ? countdownToCivilDate(startDate, now) : null;
+  const localTime = new Intl.DateTimeFormat(
+    locale === "he" ? "he-IL" : "en-GB",
+    {
+      timeZone: EVENT_TIME_ZONE,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    },
+  ).format(new Date(now));
+
+  if (!countdown || countdown.totalMs <= 0) {
+    return (
+      <div className="countdown">
+        <span>
+          {t(
+            !startDate
+              ? "notSet"
+              : endDate && today > endDate
+                ? "eventEnded"
+                : "inProgress",
+          )}
+        </span>
+        <span className="event-local-time">
+          {t("localTime")} · <bdi>{localTime}</bdi>
+        </span>
+        <span className="banner-rule" />
+      </div>
+    );
+  }
+
+  const units = [
+    [countdown.days, "days"],
+    [countdown.hours, "hours"],
+    [countdown.minutes, "minutes"],
+    [countdown.seconds, "seconds"],
+  ] as const;
+
+  return (
+    <div className="countdown">
+      <div className="countdown-units" aria-label={t("countdown")}>
+        {units.map(([value, label]) => (
+          <div className="countdown-unit" key={label}>
+            <strong>
+              {String(value).padStart(label === "days" ? 1 : 2, "0")}
+            </strong>
+            <small>{t(label)}</small>
+          </div>
+        ))}
+      </div>
+      <span className="event-local-time">
+        {t("localTime")} · <bdi>{localTime}</bdi>
+      </span>
+      <span className="banner-rule" />
+    </div>
+  );
+}
+
 export default function Operations() {
   const location = useLocation();
   const { event, writable } = useEvent();
@@ -329,13 +417,6 @@ export default function Operations() {
   const today = new Date().toLocaleDateString("en-CA", {
     timeZone: "Europe/Kyiv",
   });
-  const days = event.start_date
-    ? Math.ceil(
-        (Date.parse(event.start_date + "T00:00:00Z") -
-          Date.parse(today + "T00:00:00Z")) /
-          86400000,
-      )
-    : null;
   return (
     <section className="dashboard">
       <div className="page-heading">
@@ -358,26 +439,26 @@ export default function Operations() {
             {formatDate(event.end_date, locale)}
           </p>
           <Badge value={event.lifecycle_stage} />
+          <div className="banner-metrics" aria-label={t("operations")}>
+            <Link to={root + "/flight"}>
+              <strong>{data.counts.flights ?? 0}</strong>
+              <span>{t("flights")}</span>
+            </Link>
+            <Link to={root + "/trip"}>
+              <strong>{data.counts.trips ?? 0}</strong>
+              <span>{t("trips")}</span>
+            </Link>
+            <Link to={root + "/alerts"}>
+              <strong>{data.alerts.length}</strong>
+              <span>{t("alerts")}</span>
+            </Link>
+          </div>
         </div>
-        <div className="countdown">
-          {days !== null && days > 0 ? (
-            <>
-              <strong>{days}</strong>
-              <span>{t("days")}</span>
-            </>
-          ) : (
-            <span>
-              {t(
-                days === null
-                  ? "notSet"
-                  : event.end_date && today > event.end_date
-                    ? "eventEnded"
-                    : "inProgress",
-              )}
-            </span>
-          )}
-          <span className="banner-rule" />
-        </div>
+        <EventCountdown
+          startDate={event.start_date}
+          endDate={event.end_date}
+          today={today}
+        />
       </section>
       <div className="stat-grid">
         {[

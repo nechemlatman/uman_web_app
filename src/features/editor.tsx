@@ -1,3 +1,8 @@
+import {
+  operationalCandidates,
+  operationalInput,
+  OperationalTimeError,
+} from "../domain/time";
 import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -6,7 +11,7 @@ import { type Fields, type Kind, type RecordRow } from "../domain/model";
 import { validate, errorCode } from "../domain/validation";
 import { read, rpc, save } from "../data/repository";
 import { useEvent } from "../app/event";
-import { useI18n } from "../i18n/provider";
+import { useI18n, formatDate } from "../i18n/provider";
 import { RelationPicker } from "../components/relation-picker";
 import { ErrorState } from "../components/states";
 type Warning = { id: string; rule: string; label: string };
@@ -20,12 +25,13 @@ export function Editor({
   preset?: Fields;
 }) {
   const { event, writable } = useEvent();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [uncertain, setUncertain] = useState(false);
   const [base, setBase] = useState(row);
   const [fields, setFields] = useState(() => initialFields(kind, row, preset));
+  const [timeChoices, setTimeChoices] = useState<Record<string, string>>({});
   const [error, setError] = useState<unknown>();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
@@ -35,7 +41,9 @@ export function Editor({
   const request = useRef(crypto.randomUUID());
   const leaving = useRef(false);
   const original = useRef(JSON.stringify(initialFields(kind, row, preset)));
-  const dirty = JSON.stringify(fields) !== original.current;
+  const dirty =
+    JSON.stringify(fields) !== original.current ||
+    Object.values(timeChoices).some(Boolean);
   const blocker = useBlocker(() => dirty && !leaving.current);
   useEffect(() => {
     if (blocker.state === "blocked") {
@@ -55,13 +63,22 @@ export function Editor({
   }, [dirty]);
   const change = (key: string, value: Fields[string]) => {
     setFields((old) => ({ ...old, [key]: value }));
+    setTimeChoices((old) => ({ ...old, [key]: "" }));
     setReviewed(false);
     setWarnings([]);
   };
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!writable || pending) return;
-    const encoded = encodeFields(kind, fields, base);
+    if (!writable || pending || (!!row && !dirty)) return;
+    let encoded: Fields;
+    try {
+      encoded = encodeFields(kind, fields, base, timeChoices);
+    } catch (error) {
+      if (error instanceof OperationalTimeError)
+        setErrors({ [error.field]: error.message });
+      else setError(error);
+      return;
+    }
     const issues = validate(kind, encoded);
     setErrors(issues);
     if (Object.keys(issues).length) return;
@@ -146,9 +163,9 @@ export function Editor({
         </div>
         <button onClick={() => navigate(-1)}>{t("back")}</button>
       </div>
-      {["trip", "flight", "task"].includes(kind) && (
-        <p className="notice">{t("utcHint")}</p>
-      )}
+      {catalog[kind].fields.some(
+        (field) => field.type === "datetime-local",
+      ) && <p className="notice">{t("utcHint")}</p>}
       {kind === "accommodation_assignment" && (
         <p className="notice">{t("stayHint")}</p>
       )}
@@ -180,6 +197,14 @@ export function Editor({
                   ["person_id", "sleeping_place_id"].includes(field.key)));
             const id = "field-" + field.key;
             const value = fields[field.key];
+            const timeOptions =
+              field.type === "datetime-local" && value
+                ? operationalCandidates(String(value))
+                : [];
+            const keepsSavedTime =
+              field.type === "datetime-local" &&
+              base?.[field.key] &&
+              operationalInput(String(base[field.key])) === String(value);
             return (
               <Fragment key={field.key}>
                 {field.section && (
@@ -276,6 +301,37 @@ export function Editor({
                       disabled={pending || uncertain}
                     />
                   )}
+                  {timeOptions.length > 1 && (
+                    <label>
+                      {t("timeAmbiguous")}
+                      <select
+                        aria-label={
+                          t(field.label) + " · " + t("timeOccurrence")
+                        }
+                        value={timeChoices[field.key] ?? ""}
+                        disabled={pending || uncertain}
+                        onChange={(e) => {
+                          setTimeChoices((old) => ({
+                            ...old,
+                            [field.key]: e.target.value,
+                          }));
+                          setReviewed(false);
+                          setWarnings([]);
+                        }}
+                      >
+                        <option value="">
+                          {t(keepsSavedTime ? "keepSavedTime" : "select")}
+                        </option>
+                        {timeOptions.map((instant) => (
+                          <option key={instant} value={instant}>
+                            {instant
+                              .replace("T", " ")
+                              .replace(":00.000Z", " UTC")}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   {errors[field.key] && (
                     <small id={id + "-error"} className="field-error">
                       {t(errors[field.key])}
@@ -305,7 +361,11 @@ export function Editor({
                 .map((f) => (
                   <div key={f.key}>
                     <dt>{t(f.label)}</dt>
-                    <dd>{String(latest[f.key] ?? "—")}</dd>
+                    <dd>
+                      {f.type === "datetime-local"
+                        ? formatDate(latest[f.key], locale, true)
+                        : String(latest[f.key] ?? "—")}
+                    </dd>
                     <dd className="muted">
                       {t("yourDraft")}: {String(fields[f.key] ?? "—")}
                     </dd>
@@ -321,6 +381,7 @@ export function Editor({
                   Object.fromEntries(
                     Object.keys(fresh).map((key) => [
                       key,
+                      !timeChoices[key] &&
                       JSON.stringify(current[key]) === JSON.stringify(old[key])
                         ? fresh[key]
                         : current[key],
@@ -369,7 +430,10 @@ export function Editor({
           <button
             className="primary"
             disabled={
-              pending || !writable || (warnings.length > 0 && !reviewed)
+              pending ||
+              !writable ||
+              (!!row && !dirty) ||
+              (warnings.length > 0 && !reviewed)
             }
           >
             {t(pending ? "saving" : row ? "save" : "create")}

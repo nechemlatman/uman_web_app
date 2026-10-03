@@ -1,3 +1,4 @@
+import { operationalInput, operationalUtc, OperationalTimeError } from "./time";
 import type { Kind, Fields, RecordRow } from "./model";
 export interface Field {
   key: string;
@@ -355,7 +356,7 @@ export function initialFields(
   const result: Fields = {};
   for (const field of catalog[kind].fields) {
     let v = row?.[field.key] ?? preset[field.key] ?? field.default ?? null;
-    if (field.type === "datetime-local" && v) v = String(v).slice(0, 16);
+    if (field.type === "datetime-local" && v) v = operationalInput(String(v));
     result[field.key] = v as Fields[string];
   }
   if (kind === "person")
@@ -367,10 +368,24 @@ export function encodeFields(
   kind: Kind,
   fields: Fields,
   base?: RecordRow,
+  timeChoices: Record<string, string> = {},
 ): Fields {
   const result: Fields = {};
   for (const field of catalog[kind].fields) {
     const v = fields[field.key];
+    if (field.type === "datetime-local" && v) {
+      try {
+        result[field.key] = operationalUtc(
+          String(v),
+          base?.[field.key] ? String(base[field.key]) : undefined,
+          timeChoices[field.key],
+        );
+      } catch (error) {
+        if (error instanceof OperationalTimeError) error.field = field.key;
+        throw error;
+      }
+      continue;
+    }
     result[field.key] =
       field.type === "checkbox"
         ? Boolean(v)
@@ -380,12 +395,7 @@ export function encodeFields(
             : null
           : field.type === "number"
             ? Number(v)
-            : field.type === "datetime-local"
-              ? base?.[field.key] &&
-                String(v) === String(base[field.key]).slice(0, 16)
-                ? String(base[field.key])
-                : new Date(String(v) + "Z").toISOString()
-              : String(v).trim();
+            : String(v).trim();
   }
   if (kind === "person") result.custom_fields = fields.custom_fields ?? {};
   return result;

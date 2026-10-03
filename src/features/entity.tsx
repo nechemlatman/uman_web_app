@@ -124,12 +124,17 @@ export function Records({
               <p className="eyebrow">{t(catalog[kind].group)}</p>
               <h1>{t(catalog[kind].label)}</h1>
             </div>
-            {writable && (
-              <Link className="button primary" to={add}>
-                <Icon name="plus" />
-                {t("add")}
-              </Link>
-            )}
+            <div className="actions">
+              <button type="button" onClick={() => window.print()}>
+                {t("printPage")}
+              </button>
+              {writable && (
+                <Link className="button primary" to={add}>
+                  <Icon name="plus" />
+                  {t("add")}
+                </Link>
+              )}
+            </div>
           </div>
           <ModuleTabs kind={kind} />
         </>
@@ -144,102 +149,104 @@ export function Records({
           )}
         </div>
       )}
-      <div className="toolbar">
-        <label className="search-field">
-          <Icon name="search" />
-          <input
-            type="search"
-            aria-label={t("search")}
-            placeholder={t("searchHint")}
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setPage(0);
-            }}
-          />
-        </label>
-        {!compact && ["flight", "trip"].includes(kind) && (
-          <select
-            aria-label={t("direction")}
-            value={direction}
-            onChange={(e) => {
-              setDirection(e.target.value);
-              setPage(0);
-            }}
-          >
-            <option value="">{t("all")}</option>
-            {(kind === "trip"
-              ? ["INBOUND", "OUTBOUND", "LOCAL"]
-              : ["INBOUND", "OUTBOUND"]
-            ).map((d) => (
-              <option key={d} value={d}>
-                {t(d)}
-              </option>
-            ))}
-          </select>
-        )}
-        {!compact && statusField && (
-          <select
-            aria-label={t("status")}
-            value={selectedStatus}
-            onChange={(e) =>
-              setParams((p) => {
-                p.set("status", e.target.value);
-                p.set("page", "0");
-                return p;
-              })
-            }
-          >
-            <option value="">{t("allStatuses")}</option>
-            {["task", "apartment_issue"].includes(kind) && (
-              <option value="OPEN_ITEMS">
-                {t(kind === "task" ? "openTasks" : "openIssues")}
-              </option>
-            )}
-            {statusField.options?.map((s) => (
-              <option key={s} value={s}>
-                {t(s)}
-              </option>
-            ))}
-          </select>
-        )}
-        {!["payment", "expense"].includes(kind) && (
-          <label className="check-label">
+      {!compact && (
+        <div className="toolbar">
+          <label className="search-field">
+            <Icon name="search" />
             <input
-              type="checkbox"
-              checked={deleted}
+              type="search"
+              aria-label={t("search")}
+              placeholder={t("searchHint")}
+              value={query}
               onChange={(e) => {
-                setDeleted(e.target.checked);
+                setQuery(e.target.value);
                 setPage(0);
               }}
             />
-            {t("showArchived")}
           </label>
-        )}
-        {!compact && (
-          <>
-            {!["payment", "expense"].includes(kind) && (
-              <select
-                aria-label={t("sort")}
-                value={sort}
+          {!compact && ["flight", "trip"].includes(kind) && (
+            <select
+              aria-label={t("direction")}
+              value={direction}
+              onChange={(e) => {
+                setDirection(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="">{t("all")}</option>
+              {(kind === "trip"
+                ? ["INBOUND", "OUTBOUND", "LOCAL"]
+                : ["INBOUND", "OUTBOUND"]
+              ).map((d) => (
+                <option key={d} value={d}>
+                  {t(d)}
+                </option>
+              ))}
+            </select>
+          )}
+          {!compact && statusField && (
+            <select
+              aria-label={t("status")}
+              value={selectedStatus}
+              onChange={(e) =>
+                setParams((p) => {
+                  p.set("status", e.target.value);
+                  p.set("page", "0");
+                  return p;
+                })
+              }
+            >
+              <option value="">{t("allStatuses")}</option>
+              {["task", "apartment_issue"].includes(kind) && (
+                <option value="OPEN_ITEMS">
+                  {t(kind === "task" ? "openTasks" : "openIssues")}
+                </option>
+              )}
+              {statusField.options?.map((s) => (
+                <option key={s} value={s}>
+                  {t(s)}
+                </option>
+              ))}
+            </select>
+          )}
+          {!["payment", "expense"].includes(kind) && (
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={deleted}
                 onChange={(e) => {
-                  setSort(e.target.value);
+                  setDeleted(e.target.checked);
                   setPage(0);
                 }}
+              />
+              {t("showArchived")}
+            </label>
+          )}
+          {!compact && (
+            <>
+              {!["payment", "expense"].includes(kind) && (
+                <select
+                  aria-label={t("sort")}
+                  value={sort}
+                  onChange={(e) => {
+                    setSort(e.target.value);
+                    setPage(0);
+                  }}
+                >
+                  <option value="newest">{t("newest")}</option>
+                  <option value="name">{t("nameOrder")}</option>
+                </select>
+              )}
+              <button
+                aria-pressed={view === "cards"}
+                onClick={() => setView(view === "list" ? "cards" : "list")}
               >
-                <option value="newest">{t("newest")}</option>
-                <option value="name">{t("nameOrder")}</option>
-              </select>
-            )}
-            <button
-              aria-pressed={view === "cards"}
-              onClick={() => setView(view === "list" ? "cards" : "list")}
-            >
-              {t(view === "list" ? "cards" : "list")}
-            </button>
-          </>
-        )}
-      </div>
+                {t(view === "list" ? "cards" : "list")}
+              </button>
+            </>
+          )}
+        </div>
+      )}
       {q.isPending ? (
         <Loading />
       ) : q.error ? (

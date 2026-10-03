@@ -17,7 +17,8 @@
   --success: #2f7155;
   --success-soft: #ebf5ef;
   --shadow: 0 4px 24px #142b4310;
-  --font: Arial, "Segoe UI", system-ui, sans-serif;
+  --font:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   --serif: Georgia, "Times New Roman", serif;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;

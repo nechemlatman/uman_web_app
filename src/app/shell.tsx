@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useEvent } from "./event";
 import { useI18n } from "../i18n/provider";
 import { LanguageButton } from "../features/auth";
@@ -25,6 +31,7 @@ export function Shell() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<unknown>();
   const location = useLocation();
+  const navigate = useNavigate();
   useEffect(() => {
     if (!open) return;
     const close = (e: KeyboardEvent) => {
@@ -33,6 +40,16 @@ export function Shell() {
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
   }, [open]);
+  useEffect(() => {
+    const shortcut = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "k") return;
+      e.preventDefault();
+      setOpen(false);
+      navigate("/e/" + event.id + "/search");
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, [event.id, navigate]);
   const root = "/e/" + event.id;
   function signOut() {
     if (
@@ -81,7 +98,7 @@ export function Shell() {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <span className="status-dot" />
+          <Icon name="location" size={14} />
           {t("location")}
         </div>
       </aside>
@@ -104,7 +121,11 @@ export function Shell() {
             >
               <Icon name="menu" />
             </button>
-            <span className={"sync-status " + sync}>
+            <span
+              className={"sync-status " + sync}
+              role="status"
+              aria-live="polite"
+            >
               <span className="status-dot" />
               {t(sync)}
             </span>
@@ -114,6 +135,8 @@ export function Shell() {
               className="icon-button"
               to={root + "/search"}
               aria-label={t("searchAll")}
+              aria-keyshortcuts="Control+K Meta+K"
+              title={t("searchAll") + " · Ctrl/⌘ K"}
             >
               <Icon name="search" />
             </Link>
@@ -132,7 +155,12 @@ export function Shell() {
           <Outlet key={location.pathname} />
         </main>
         <nav className="mobile-nav" aria-label={t("more")}>
-          {nav.slice(0, 5).map(([path, label]) => (
+          {[
+            ["", "dashboard"],
+            ["person", "people"],
+            ["apartment", "stay"],
+            ["payment", "finance"],
+          ].map(([path, label]) => (
             <NavLink
               to={root + (path ? "/" + path : "")}
               end={path === ""}
@@ -142,6 +170,16 @@ export function Shell() {
               <span>{t(label)}</span>
             </NavLink>
           ))}
+          <button
+            type="button"
+            className="mobile-more"
+            aria-expanded={open}
+            aria-controls="event-navigation"
+            onClick={() => setOpen(true)}
+          >
+            <Icon name="menu" />
+            <span>{t("more")}</span>
+          </button>
         </nav>
       </div>
     </div>

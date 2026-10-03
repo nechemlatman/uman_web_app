@@ -31,9 +31,41 @@ export function RecordValue({ field, row }: { field: Field; row: RecordRow }) {
     return <span>{t(v ? "active" : "INACTIVE")}</span>;
   if (field.type === "date" || field.type === "datetime-local")
     return <bdi>{formatDate(v, locale, field.type === "datetime-local")}</bdi>;
-  if (field.type === "tel")
+  if (field.key === "address" || field.key === "hebrew_address")
     return (
-      <a dir="ltr" href={"tel:" + String(v).replace(/[^+0-9]/g, "")}>
+      <a
+        href={
+          "https://www.google.com/maps/search/?api=1&query=" +
+          encodeURIComponent(String(v))
+        }
+        target="_blank"
+        rel="noreferrer"
+      >
+        <bdi>{String(v)}</bdi>
+      </a>
+    );
+  if (field.type === "tel") {
+    const number = String(v);
+    if (field.key === "whatsapp_phone")
+      return (
+        <a
+          dir="ltr"
+          href={"https://wa.me/" + number.replace(/\D/g, "")}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {number}
+        </a>
+      );
+    return (
+      <a dir="ltr" href={"tel:" + number.replace(/[^+0-9]/g, "")}>
+        {number}
+      </a>
+    );
+  }
+  if (field.type === "email")
+    return (
+      <a dir="ltr" href={"mailto:" + String(v)}>
         {String(v)}
       </a>
     );

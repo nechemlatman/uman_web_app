@@ -14,8 +14,8 @@ const fields = [
   ["start_date", "startDate", "date"],
   ["end_date", "endDate", "date"],
   ["base_currency", "baseCurrency", "text"],
-  ["description", "description", "text"],
-  ["manager_notes", "managerNotes", "text"],
+  ["description", "description", "textarea"],
+  ["manager_notes", "managerNotes", "textarea"],
 ];
 const values = (event: EventRow) =>
   Object.fromEntries(
@@ -33,6 +33,10 @@ export default function Settings() {
   const [compare, setCompare] = useState(false);
   const original = useRef(JSON.stringify(values(event)));
   const dirty = JSON.stringify(draft) !== original.current;
+  const invalidDates =
+    !!draft.start_date &&
+    !!draft.end_date &&
+    draft.start_date >= draft.end_date;
   const blocker = useBlocker(dirty);
   useEffect(() => {
     if (blocker.state === "blocked") {
@@ -55,6 +59,7 @@ export default function Settings() {
   );
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!writable || pending || !dirty || invalidDates) return;
     setPending(true);
     setSaved(false);
     setError(undefined);
@@ -92,20 +97,38 @@ export default function Settings() {
             {fields.map(([key, label, type]) => (
               <label key={key}>
                 {t(label)}
-                <input
-                  name={key}
-                  type={type}
-                  value={draft[key]}
-                  onChange={(e) => {
-                    setDraft((d) => ({ ...d, [key]: e.target.value }));
-                    setSaved(false);
-                  }}
-                  required={key === "name"}
-                  disabled={pending}
-                />
+                {type === "textarea" ? (
+                  <textarea
+                    name={key}
+                    rows={4}
+                    value={draft[key]}
+                    onChange={(e) => {
+                      setDraft((d) => ({ ...d, [key]: e.target.value }));
+                      setSaved(false);
+                    }}
+                    disabled={pending || !writable}
+                  />
+                ) : (
+                  <input
+                    name={key}
+                    type={type}
+                    value={draft[key]}
+                    onChange={(e) => {
+                      setDraft((d) => ({ ...d, [key]: e.target.value }));
+                      setSaved(false);
+                    }}
+                    required={key === "name"}
+                    disabled={pending || !writable}
+                  />
+                )}
               </label>
             ))}
           </div>
+          {invalidDates && (
+            <p className="notice error" role="alert">
+              {t("dateOrder")}
+            </p>
+          )}
           {!!error && <ErrorState error={error} />}
           {!!error && errorCode(error) === "conflict" && (
             <button type="button" onClick={() => setCompare(true)}>
@@ -147,7 +170,10 @@ export default function Settings() {
           )}
           <div className="form-actions">
             {saved && <span role="status">{t("saved")}</span>}
-            <button className="primary" disabled={!writable || pending}>
+            <button
+              className="primary"
+              disabled={!writable || pending || !dirty || invalidDates}
+            >
               {t(pending ? "saving" : "save")}
             </button>
           </div>

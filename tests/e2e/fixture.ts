@@ -1,4 +1,4 @@
-import { type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 export const eventId = "44444444-4444-4444-8444-444444444444",
   personId = "55555555-5555-4555-8555-555555555555";
 const actor = "11111111-1111-4111-8111-111111111111",
@@ -61,7 +61,19 @@ export async function fixture(page: Page) {
       ],
       events: [{ ...event }],
     },
-    state = { conflict: false, warnings: false, denied: false };
+    state = {
+      conflict: false,
+      warnings: false,
+      denied: false,
+      alerts: [] as Array<{
+        id: string;
+        rule: string;
+        kind: string;
+        entity_id: string;
+        label: string;
+        severity: string;
+      }>,
+    };
   const token =
     btoa(JSON.stringify({ alg: "HS256", typ: "JWT" })) +
     "." +
@@ -151,8 +163,16 @@ export async function fixture(page: Page) {
       return respond({ id: actor, email: "manager@example.test" });
     if (name === "web_command_center")
       return respond({
-        counts: { people: 1, assignments: 0, tasks: 0, issues: 0, beds: 0 },
-        alerts: [],
+        counts: {
+          people: 1,
+          assignments: 0,
+          tasks: 0,
+          issues: 0,
+          beds: 0,
+          flights: (records.flights ?? []).length,
+          trips: (records.trips ?? []).length,
+        },
+        alerts: state.alerts,
         schedule: [],
         finance: {
           payments: "0",
@@ -244,11 +264,20 @@ export async function fixture(page: Page) {
     notify: (table: string) => notifications.forEach((n) => n(table)),
   };
 }
-export async function login(page: Page) {
+export async function signIn(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "English", exact: true }).click();
   await page.getByLabel("Email address").fill("manager@example.test");
   await page.getByLabel("Password", { exact: true }).fill("fixture-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: /Browser verification event/ }).click();
+}
+export async function login(page: Page) {
+  await signIn(page);
+  await page.waitForURL(new RegExp("/e/" + eventId + "(/|$)"));
+  await expect(
+    page.getByRole("heading", { name: "Command center", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("banner").getByRole("status")).toContainText(
+    "Live updates connected",
+  );
 }

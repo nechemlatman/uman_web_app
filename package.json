@@ -13,9 +13,11 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:db": "node tests/database.mjs",
-    "format": "prettier --write src tests package.json vite.config.ts playwright.config.ts",
-    "format:check": "prettier --check src tests package.json vite.config.ts playwright.config.ts",
-    "test:hmr": "playwright test --config playwright.hmr.config.ts"
+    "format": "prettier --write src tests package.json vite.config.ts playwright.config.ts playwright.hmr.config.ts",
+    "format:check": "prettier --check src tests package.json vite.config.ts playwright.config.ts playwright.hmr.config.ts",
+    "test:hmr": "playwright test --config playwright.hmr.config.ts",
+    "dev:lan": "vite --host 0.0.0.0",
+    "preview:lan": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",

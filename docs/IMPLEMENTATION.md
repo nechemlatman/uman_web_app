@@ -15,7 +15,7 @@ React components call the repository boundary. Event-scoped paginated reads use 
 
 All entities validate their event scope at the client boundary. Passport details are fetched only on the person detail/editor path through read_person; relation labels use public names only. Operational query data is memory-only and discarded on identity/event changes. Supabase manages the authenticated session; localStorage otherwise contains display preferences only.
 
-The metadata-driven field catalog covers the domain differences while keeping validation, persistence and presentation separate. Known status options and editable columns follow existing RPC allowlists. Unknown person custom_fields are preserved. Unchanged timestamps retain server precision; explicit timestamp edits are UTC. Civil accommodation dates remain dates with [start,end) semantics.
+The metadata-driven field catalog covers the domain differences while keeping validation, persistence and presentation separate. Known status options and editable columns follow existing RPC allowlists. Unknown person custom_fields are preserved. Unchanged timestamps retain server precision; timestamp inputs/displays and schedule grouping use Europe/Kyiv, with UTC persistence. The centralized conversion rejects DST gaps and asks managers to select an occurrence for repeated hours; no airport timezone inference is performed. Civil accommodation dates remain dates with [start,end) semantics.
 
 ## Writes and conflicts
 

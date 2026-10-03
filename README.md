@@ -9,7 +9,7 @@ Requires Node.js 22.12+ and npm. Development was verified with Node 22.16.0.
 ```powershell
 Set-Location C:\Users\Nechem\Documents\uman_web_app
 npm ci
-Copy-Item .env.example .env.local
+if (!(Test-Path .env.local)) { Copy-Item .env.example .env.local }
 ```
 
 Fill these build-time variables in .env.local, then start:
@@ -24,6 +24,14 @@ npm run dev
 ```
 
 Open http://localhost:5173. An existing .env.local is already configured on the implementation machine; do not overwrite it. Only the publishable/anon key belongs in frontend configuration. The client rejects service-role configuration.
+
+For temporary testing from a phone on the same trusted Wi-Fi/LAN, start the explicit LAN server:
+
+```powershell
+npm run dev:lan
+```
+
+Then open the computer's LAN IPv4 address with port 5173 from the phone, for example `http://192.168.x.x:5173`. Windows Firewall may prompt for private-network access. Do not expose the Vite development server directly to the public internet; use the HTTPS production deployment flow below for remote access.
 
 ## Stack and structure
 
@@ -67,18 +75,30 @@ The requested extra manager account was cancelled by the user and was not create
 ## Checks
 
 ```powershell
+npm ci
+npm audit --audit-level=high
 npm run typecheck
 npm run lint
 npm test
 npm run test:db
-node node_modules/@playwright/test/cli.js install chromium
+npx playwright install chromium firefox webkit
 npm run test:e2e
 npm run test:hmr
 npm run format:check
 npm run build
 ```
 
-Browser tests intercept Supabase HTTP/WebSocket traffic and use isolated fixtures. They do not write test people or money into the hosted project. PostgreSQL checks run inside a disposable PGlite database. Test screenshots/traces and build output are ignored by Git.
+Browser coverage is Chromium desktop, Firefox desktop and WebKit with the iPhone 13 device profile: 20 workflows per project, 60 tests total, plus one isolated Chromium HMR regression. This is automated iPhone emulation, not physical iPhone verification. On Linux use `npx playwright install --with-deps chromium firefox webkit`.
+
+Playwright starts a dedicated Vite server on port 5190 with fixture-only public Supabase configuration; it never reuses the normal app on port 5173 and requires no hosted credentials. HMR uses a copied app on port 5180 with separate output. Browser tests intercept Supabase HTTP/WebSocket traffic and use isolated fixtures. They do not write test people or money into the hosted project. PostgreSQL checks run inside a disposable PGlite database. Test screenshots/traces and build output are ignored by Git.
+
+CI runs on pull-request updates and pushes to `codex/production-web`, avoiding duplicate feature-branch push runs. Quality gates and all browser/HMR gates passed for the consolidated code. See [verification evidence](docs/VERIFICATION.md) and [current PR checks](https://github.com/nechemlatman/uman_web_app/pull/2/checks). Only failed runs upload traces/screenshots, retained for seven days.
+
+## Operational time
+
+Inputs, timestamp displays and schedule date grouping use **Europe/Kyiv (Uman time)**; the database continues to store UTC timestamptz values. Spring DST gaps are rejected and repeated autumn hours require selecting the intended UTC occurrence. Unchanged timestamps preserve the original instant and precision. Accommodation dates remain civil dates with `[start_date, end_date)` and same-day turnover.
+
+Flights also use the clearly labeled Uman timezone. Convert an origin-airport local time before entering it; the model does not supply airport-specific timezones and the app does not infer them. Historical records are not rewritten.
 
 ## Production build and deployment
 
@@ -95,12 +115,12 @@ Deploy the **dist** directory to static hosting. Set the two VITE\_\* variables 
 - Netlify / Cloudflare Pages: build npm run build, output dist. public/\_redirects and public/\_headers are copied into dist.
 - Other static servers: return index.html for application routes, serve assets normally, configure equivalent security headers and HTTPS. Avoid caching index.html indefinitely.
 
-No website was published to a hosting provider during this task. The existing database is updated; the frontend is running locally. Before broad rollout, verify the deployed origin with two separate manager accounts and the devices your team uses.
+No website was published to a hosting provider during this task. The web database migration was deployed in the earlier implementation pass; this consolidation makes no database changes. The frontend remains local, with no public deployment verified. Before broad rollout, verify the deployed origin with two separate manager accounts and the devices your team uses.
 
-The manifest supports standalone display and includes an SVG icon. Installation across browsers is not yet verified. There is no offline write queue or service worker caching authenticated records.
+The manifest supports standalone display and includes SVG plus 192px/512px PNG icons. A 180px PNG Apple touch icon is linked in the page. Installation across browsers is not yet verified. There is no offline write queue or service worker caching authenticated records.
 
 ## Product boundaries
 
 Master Spec 2.6 explicitly defers participant expense allocation/shares and unpaid balances under OPD-002/003. This app shows original payment/expense records, recorded conversions and event totals. It never invents debt or an unpaid alert.
 
-Derived alerts are read-time checks with deterministic identities; manager acknowledgment/dismissal persistence and required-contact policy editing are not included. The schedule and alert summaries are bounded to 100 entries and state this limit. Full source lists paginate at 40 rows. Printing/export, self-service account recovery, public signup and event membership editing are not exposed as unfinished actions.
+Derived alerts are read-time checks with deterministic identities; manager acknowledgment/dismissal persistence and required-contact policy editing are not included. The schedule and alert summaries are bounded to 100 entries and state this limit. Full source lists paginate at 40 rows. Browser printing is labeled **Print current page** and prints the currently rendered page, not the full paginated dataset. Full manifests/exports, self-service account recovery, public signup and event membership editing remain outside this release.

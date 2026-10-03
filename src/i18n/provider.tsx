@@ -1,3 +1,4 @@
+import { EVENT_TIME_ZONE } from "../domain/time";
 import { developmentSingleton } from "../app/development-singleton";
 import {
   createContext,
@@ -47,7 +48,7 @@ export function formatDate(
     new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
       dateStyle: "medium",
       ...(time ? { timeStyle: "short" as const } : {}),
-      timeZone: "UTC",
-    }).format(date) + (time ? " UTC" : "")
+      timeZone: time ? EVENT_TIME_ZONE : "UTC",
+    }).format(date) + (time ? " · " + EVENT_TIME_ZONE : "")
   );
 }
