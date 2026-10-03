@@ -80,3 +80,47 @@ export function countdownToCivilDate(
     seconds: totalSeconds % 60,
   };
 }
+
+/** Display/input uses event-local wall time; persisted values stay UTC. */
+export function operationalInput(value: string): string {
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return "";
+  const p = zonedParts(timestamp, EVENT_TIME_ZONE);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
+}
+
+/** Zero candidates is a DST gap/invalid date; two is a repeated autumn hour. */
+export function operationalCandidates(value: string): string[] {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return [];
+  const [year, month, day, hour, minute] = value.split(/[-T:]/).map(Number);
+  const wall = Date.UTC(year, month - 1, day, hour, minute);
+  if (new Date(wall).toISOString().slice(0, 16) !== value) return [];
+  // Sample both sides of any Kyiv offset transition; round-trip candidates
+  // instead of allowing Date to silently normalize nonexistent local times.
+  const offsets = new Set(
+    [-36, 0, 36].map((h) => zoneOffsetMs(wall + h * 3600000, EVENT_TIME_ZONE)),
+  );
+  return [...offsets]
+    .map((offset) => new Date(wall - offset).toISOString())
+    .filter((instant) => operationalInput(instant) === value)
+    .sort();
+}
+
+export class OperationalTimeError extends Error {
+  field = "";
+}
+
+export function operationalUtc(
+  value: string,
+  original?: string,
+  choice?: string,
+): string {
+  if (!choice && original && operationalInput(original) === value)
+    return original;
+  const candidates = operationalCandidates(value);
+  if (!candidates.length) throw new OperationalTimeError("timeInvalid");
+  if (choice && candidates.includes(choice)) return choice;
+  if (candidates.length !== 1) throw new OperationalTimeError("timeAmbiguous");
+  return candidates[0];
+}

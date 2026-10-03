@@ -115,6 +115,8 @@ export function EventSelection() {
   const [error, setError] = useState<unknown>();
   if (loading) return <Loading />;
   if (!session) return <Navigate to="/" replace />;
+  if (!q.isPending && !q.error && q.data?.length === 1)
+    return <Navigate to={"/e/" + q.data[0].id} replace />;
   return (
     <main className="event-picker">
       <header>

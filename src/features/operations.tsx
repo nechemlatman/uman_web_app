@@ -1,3 +1,4 @@
+import { operationalInput } from "../domain/time";
 import { useEffect, useState } from "react";
 import { useSession } from "../app/session";
 import { tables } from "../domain/model";
@@ -130,11 +131,14 @@ function Schedule({ data, limit = 100 }: { data: Summary; limit?: number }) {
     .filter(
       (s) =>
         (!kind || s.kind === kind) &&
-        (!date || (s.civil_date ?? s.at.slice(0, 10)) === date),
+        (!date ||
+          (s.civil_date ?? operationalInput(s.at).slice(0, 10)) === date),
     )
     .slice(0, limit);
   const days = [
-    ...new Set(rows.map((s) => s.civil_date ?? s.at.slice(0, 10))),
+    ...new Set(
+      rows.map((s) => s.civil_date ?? operationalInput(s.at).slice(0, 10)),
+    ),
   ].sort();
   return (
     <>
@@ -174,7 +178,11 @@ function Schedule({ data, limit = 100 }: { data: Summary; limit?: number }) {
             )}
             <div className="operational-list">
               {rows
-                .filter((s) => (s.civil_date ?? s.at.slice(0, 10)) === day)
+                .filter(
+                  (s) =>
+                    (s.civil_date ?? operationalInput(s.at).slice(0, 10)) ===
+                    day,
+                )
                 .map((s, i) => (
                   <Link
                     className="operational-row"

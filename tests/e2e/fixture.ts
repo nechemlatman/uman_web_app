@@ -1,4 +1,4 @@
-import { type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 export const eventId = "44444444-4444-4444-8444-444444444444",
   personId = "55555555-5555-4555-8555-555555555555";
 const actor = "11111111-1111-4111-8111-111111111111",
@@ -264,11 +264,20 @@ export async function fixture(page: Page) {
     notify: (table: string) => notifications.forEach((n) => n(table)),
   };
 }
-export async function login(page: Page) {
+export async function signIn(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "English", exact: true }).click();
   await page.getByLabel("Email address").fill("manager@example.test");
   await page.getByLabel("Password", { exact: true }).fill("fixture-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: /Browser verification event/ }).click();
+}
+export async function login(page: Page) {
+  await signIn(page);
+  await page.waitForURL(new RegExp("/e/" + eventId + "(/|$)"));
+  await expect(
+    page.getByRole("heading", { name: "Command center", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("banner").getByRole("status")).toContainText(
+    "Live updates connected",
+  );
 }

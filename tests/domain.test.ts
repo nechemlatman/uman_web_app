@@ -162,13 +162,13 @@ describe("precision and mapping", () => {
         payment_date: "2027-09-01",
       }),
     ).toHaveProperty("amount"));
-  it("converts explicit UTC form timestamps without browser timezone", () =>
+  it("converts Uman form timestamps independently of browser timezone", () =>
     expect(
       encodeFields("flight", {
         ...initialFields("flight"),
         scheduled_departure_utc: "2027-09-01T12:30",
       }).scheduled_departure_utc,
-    ).toBe("2027-09-01T12:30:00.000Z"));
+    ).toBe("2027-09-01T09:30:00.000Z"));
   it("preserves custom person fields during edit", () => {
     const row = {
       id,
@@ -226,6 +226,6 @@ it("preserves original timestamp precision when editing another field", () => {
   );
   fields.scheduled_departure_utc = "2027-09-01T13:30";
   expect(encodeFields("flight", fields, row).scheduled_departure_utc).toBe(
-    "2027-09-01T13:30:00.000Z",
+    "2027-09-01T10:30:00.000Z",
   );
 });

@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - codex/production-web
-      - main
-      - "chatgpt/**"
   pull_request:
 
 permissions:
@@ -81,22 +79,15 @@ jobs:
       - name: Hot-reload regression
         run: npm run test:hmr
 
-      - name: Upload dashboard review screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dashboard-review-screenshots
-          path: test-results/dashboard-*.png
-          if-no-files-found: ignore
-          retention-days: 3
-
       - name: Upload browser failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: browser-failure-artifacts
+          include-hidden-files: true
           path: |
             playwright-report/
             test-results/
+            .local/hmr-results/
           if-no-files-found: ignore
           retention-days: 7

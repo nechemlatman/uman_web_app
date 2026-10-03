@@ -359,7 +359,7 @@ test("record details surface operational alerts in context", async ({
   await login(page);
   await page.goto("/e/" + eventId + "/person/" + personId);
   await expect(
-    page.getByRole("heading", { name: "Alerts", exact: true }),
+    page.getByRole("heading", { name: "Attention needed", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByText("Passport validity needs review", { exact: true }),
