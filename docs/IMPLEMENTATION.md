@@ -15,7 +15,7 @@ React components call the repository boundary. Event-scoped paginated reads use 
 
 All entities validate their event scope at the client boundary. Passport details are fetched only on the person detail/editor path through read_person; relation labels use public names only. Operational query data is memory-only and discarded on identity/event changes. Supabase manages the authenticated session; localStorage otherwise contains display preferences only.
 
-The metadata-driven field catalog covers the domain differences while keeping validation, persistence and presentation separate. Known status options and editable columns follow existing RPC allowlists. Unknown person custom_fields are preserved. Unchanged timestamps retain server precision; explicit timestamp edits are UTC. Civil accommodation dates remain dates with [start,end) semantics.
+The metadata-driven field catalog covers the domain differences while keeping validation, persistence and presentation separate. Known status options and editable columns follow existing RPC allowlists. Unknown person custom_fields are preserved. Unchanged timestamps retain server precision; timestamp inputs/displays and schedule grouping use Europe/Kyiv, with UTC persistence. The centralized conversion rejects DST gaps and asks managers to select an occurrence for repeated hours; no airport timezone inference is performed. Civil accommodation dates remain dates with [start,end) semantics.
 
 ## Writes and conflicts
 
@@ -57,4 +57,3 @@ Vite development singletons keep React contexts and the mount root stable when s
 Routes load lazily; library bundles split into React/router/query vendor, Supabase and validation. CSS uses logical properties for RTL/LTR, focus styles and responsive lists/forms. Hidden mobile navigation is removed from visual interaction and keyboard focus until opened.
 
 Static deployment requires no paid application server. SPA rewrites and CSP are included. The server remains the existing Supabase project. No authenticated offline data cache is introduced.
-
