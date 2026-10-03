@@ -57,4 +57,3 @@ Vite development singletons keep React contexts and the mount root stable when s
 Routes load lazily; library bundles split into React/router/query vendor, Supabase and validation. CSS uses logical properties for RTL/LTR, focus styles and responsive lists/forms. Hidden mobile navigation is removed from visual interaction and keyboard focus until opened.
 
 Static deployment requires no paid application server. SPA rewrites and CSP are included. The server remains the existing Supabase project. No authenticated offline data cache is introduced.
-

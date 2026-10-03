@@ -6,22 +6,22 @@ A bilingual, event-scoped management app for participants, flights, ground trans
 
 Requires Node.js 22.12+ and npm. Development was verified with Node 22.16.0.
 
-~~~powershell
+```powershell
 Set-Location C:\Users\Nechem\Documents\uman_web_app
 npm ci
 Copy-Item .env.example .env.local
-~~~
+```
 
 Fill these build-time variables in .env.local, then start:
 
-~~~text
+```text
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
-~~~
+```
 
-~~~powershell
+```powershell
 npm run dev
-~~~
+```
 
 Open http://localhost:5173. An existing .env.local is already configured on the implementation machine; do not overwrite it. Only the publishable/anon key belongs in frontend configuration. The client rejects service-role configuration.
 
@@ -52,9 +52,9 @@ The pre-existing hosted history includes 20260928214807_legacy_draft_forms, newe
 
 For future CLI migration work, fetch the hosted migration history before using db push; this repository initially contains only its own forward migration:
 
-~~~powershell
+```powershell
 supabase migration fetch --project-ref rrgzalzaaprdsmwihqxa
-~~~
+```
 
 Authenticate the CLI through the normal operator flow. Review fetched files and a dry run before any later deployment. Never reset hosted data or repair migration history just to suppress a mismatch.
 
@@ -66,7 +66,7 @@ The requested extra manager account was cancelled by the user and was not create
 
 ## Checks
 
-~~~powershell
+```powershell
 npm run typecheck
 npm run lint
 npm test
@@ -76,23 +76,23 @@ npm run test:e2e
 npm run test:hmr
 npm run format:check
 npm run build
-~~~
+```
 
 Browser tests intercept Supabase HTTP/WebSocket traffic and use isolated fixtures. They do not write test people or money into the hosted project. PostgreSQL checks run inside a disposable PGlite database. Test screenshots/traces and build output are ignored by Git.
 
 ## Production build and deployment
 
-~~~powershell
+```powershell
 Set-Location C:\Users\Nechem\Documents\uman_web_app
 npm ci
 npm run build
 npm run preview
-~~~
+```
 
-Deploy the **dist** directory to static hosting. Set the two VITE_* variables in the hosting provider before building. These values are included in the browser bundle; they must never contain privileged credentials.
+Deploy the **dist** directory to static hosting. Set the two VITE\_\* variables in the hosting provider before building. These values are included in the browser bundle; they must never contain privileged credentials.
 
 - Vercel: framework Vite, build npm run build, output dist. vercel.json includes SPA rewrites and security headers.
-- Netlify / Cloudflare Pages: build npm run build, output dist. public/_redirects and public/_headers are copied into dist.
+- Netlify / Cloudflare Pages: build npm run build, output dist. public/\_redirects and public/\_headers are copied into dist.
 - Other static servers: return index.html for application routes, serve assets normally, configure equivalent security headers and HTTPS. Avoid caching index.html indefinitely.
 
 No website was published to a hosting provider during this task. The existing database is updated; the frontend is running locally. Before broad rollout, verify the deployed origin with two separate manager accounts and the devices your team uses.
@@ -104,4 +104,3 @@ The manifest supports standalone display and includes an SVG icon. Installation 
 Master Spec 2.6 explicitly defers participant expense allocation/shares and unpaid balances under OPD-002/003. This app shows original payment/expense records, recorded conversions and event totals. It never invents debt or an unpaid alert.
 
 Derived alerts are read-time checks with deterministic identities; manager acknowledgment/dismissal persistence and required-contact policy editing are not included. The schedule and alert summaries are bounded to 100 entries and state this limit. Full source lists paginate at 40 rows. Printing/export, self-service account recovery, public signup and event membership editing are not exposed as unfinished actions.
-

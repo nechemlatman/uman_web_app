@@ -1,4 +1,4 @@
-# Verification — 2026-10-02
+# Verification — 2026-10-03
 
 ## Verified automatically
 
@@ -52,4 +52,3 @@ This is an implemented and locally verified release candidate, not a claim that 
 4. Disconnect/reconnect one device, confirm the status changes, and confirm pending input remains local.
 5. Verify a complete test itinerary/room assignment/financial correction using your own designated test event.
 6. Check mobile Safari/Chrome, invitation configuration and the intended HTTPS hosting origin before broad rollout.
-
