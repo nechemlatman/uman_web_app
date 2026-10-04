@@ -237,7 +237,9 @@ export const catalog: Record<
     group: "stay",
     columns: ["room_id", "type", "is_active"],
     fields: [
-      f("label", "name"),
+      f("bed_code", "bedCode", "text", { max: 64 }),
+      f("label", "bedLabel"),
+      f("listed_price", "listedPrice", "decimal"),
       ref("room_id", "room", "room"),
       f("type", "type", "select", {
         options: ["REGULAR_BED", "BUNK_BED", "SOFA_BED", "MATTRESS", "CUSTOM"],
@@ -260,6 +262,7 @@ export const catalog: Record<
     fields: [
       ref("person_id", "person", "person"),
       ref("sleeping_place_id", "sleepingPlace", "sleeping_place"),
+      f("agreed_price", "agreedPrice", "decimal"),
       f("start_date", "checkIn", "date"),
       f("end_date", "checkOut", "date"),
       status(["DRAFT", "ACTIVE", "TEMPORARY", "CANCELLED"]),

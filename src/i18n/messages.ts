@@ -1,4 +1,50 @@
 export const en = {
+  bedBoard: "Accommodation bed board",
+  bed: "Bed",
+  bedCode: "Physical bed number / code",
+  bedLabel: "Optional descriptive label",
+  listedPrice: "Listed bed price",
+  agreedPrice: "Agreed accommodation price",
+  listedTotal: "Total listed prices",
+  agreedTotal: "Total agreed prices",
+  totalBeds: "Total beds",
+  available: "Available",
+  reserved: "Reserved",
+  inactive: "Inactive",
+  pricesMissing: "prices not set",
+  wholeEventStay:
+    "Assignments reserve a bed for the whole event. Arrival dates do not release beds.",
+  eventDatesRequired:
+    "Set the event start and end dates in Settings before activating an assignment.",
+  legacyStayDates:
+    "This existing interval is preserved for compatibility. The bed still counts as assigned for the event.",
+  stayPricingHint:
+    "Accommodation prices use the event currency. They are not payments received and do not calculate debt.",
+  stayPriceInvalid:
+    "Enter a nonnegative price with up to 16 integer digits and 4 decimal places, or leave blank.",
+  bulkBeds: "Add several beds",
+  bulkBedsHint:
+    "Create 1–100 active regular beds. Numbering increments the final digits (1, 12, A3). For multiple beds, the starting code must end in at most nine digits. Every bed can be edited later.",
+  bedCount: "Number of beds",
+  startingCode: "Starting number / code",
+  bulkRetry:
+    "The result is uncertain. Retry the same request to confirm it without creating duplicates. Do not submit it again as a new request.",
+  moveStay: "Move assignment",
+  moveStayHint:
+    "Choose the replacement bed yourself. This cancels the original assignment and creates a new whole-event assignment, keeping its agreed price and audit history. Overlap warnings require your acknowledgment.",
+  editAssignment: "Edit assignment / price",
+  cancelStay: "Cancel assignment",
+  cancelStayConfirm:
+    "Cancel this assignment? Its history will remain and the bed can become available.",
+  addBed: "Add bed",
+  addRoom: "Add room",
+  editBed: "Edit bed",
+  activateBed: "Activate bed",
+  deactivateBed: "Deactivate bed",
+  unplacedBeds: "Beds without a room",
+  noBeds: "No beds in this room yet.",
+  multipleStays: "Multiple assignments: review this bed before making changes.",
+  searchBeds: "Bed code, label or assigned person",
   you: "You",
   manager: "Manager",
   PERSON_WITHOUT_SLEEPING_PLACE: "Accommodation does not cover the full event",
@@ -363,6 +409,51 @@ export const en = {
 export type MessageKey = keyof typeof en;
 export const he: Record<MessageKey, string> = {
   ...en,
+  bedBoard: "לוח מיטות ולינה",
+  bed: "מיטה",
+  bedCode: "מספר / קוד פיזי של המיטה",
+  bedLabel: "תיאור אופציונלי",
+  listedPrice: "מחיר מחירון למיטה",
+  agreedPrice: "מחיר לינה מוסכם",
+  listedTotal: "סך מחירי מחירון",
+  agreedTotal: "סך מחירים מוסכמים",
+  totalBeds: "סך מיטות",
+  available: "פנויה",
+  reserved: "שמורה",
+  inactive: "לא פעילה",
+  pricesMissing: "מחירים לא הוגדרו",
+  wholeEventStay:
+    "השיבוץ שומר את המיטה לכל האירוע. תאריך ההגעה אינו משחרר מיטה.",
+  eventDatesRequired:
+    "יש להגדיר תאריכי התחלה וסיום בהגדרות האירוע לפני הפעלת שיבוץ.",
+  legacyStayDates:
+    "טווח התאריכים הקיים נשמר לתאימות. המיטה עדיין נחשבת משובצת לכל האירוע.",
+  stayPricingHint:
+    "מחירי הלינה מוצגים במטבע האירוע. הם אינם תשלומים שהתקבלו ולא מחשבים חוב.",
+  stayPriceInvalid:
+    "יש להזין מחיר שאינו שלילי, עד 16 ספרות שלמות ו־4 ספרות עשרוניות, או להשאיר ריק.",
+  bulkBeds: "הוספת מספר מיטות",
+  bulkBedsHint:
+    "יצירת 1–100 מיטות רגילות פעילות. המספור מגדיל את הספרות שבסוף הקוד (1, 12, A3). למספר מיטות, הקוד חייב להסתיים בעד תשע ספרות. ניתן לערוך כל מיטה לאחר מכן.",
+  bedCount: "מספר מיטות ליצירה",
+  startingCode: "מספר / קוד התחלתי",
+  bulkRetry:
+    "התוצאה אינה ודאית. יש לנסות שוב את אותה בקשה כדי לאשר ללא כפילויות. אין לשלוח בקשה חדשה לאותה פעולה.",
+  moveStay: "העברת שיבוץ",
+  moveStayHint:
+    "יש לבחור את המיטה החדשה. הפעולה מבטלת את השיבוץ המקורי ויוצרת שיבוץ חדש לכל האירוע, עם המחיר המוסכם והיסטוריית הביקורת. אזהרות חפיפה דורשות אישור.",
+  editAssignment: "עריכת שיבוץ / מחיר",
+  cancelStay: "ביטול שיבוץ",
+  cancelStayConfirm: "לבטל את השיבוץ? ההיסטוריה תישמר והמיטה עשויה להתפנות.",
+  addBed: "הוספת מיטה",
+  addRoom: "הוספת חדר",
+  editBed: "עריכת מיטה",
+  activateBed: "הפעלת מיטה",
+  deactivateBed: "השבתת מיטה",
+  unplacedBeds: "מיטות ללא חדר",
+  noBeds: "אין עדיין מיטות בחדר.",
+  multipleStays: "קיימים מספר שיבוצים. יש לבדוק את המיטה לפני שינוי.",
+  searchBeds: "קוד מיטה, תיאור או אדם משובץ",
   you: "אתה",
   manager: "מנהל",
   PERSON_WITHOUT_SLEEPING_PLACE: "הלינה אינה מכסה את כל ימי האירוע",

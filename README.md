@@ -104,3 +104,7 @@ The manifest supports standalone display and includes an SVG icon. Installation 
 Master Spec 2.6 explicitly defers participant expense allocation/shares and unpaid balances under OPD-002/003. This app shows original payment/expense records, recorded conversions and event totals. It never invents debt or an unpaid alert.
 
 Derived alerts are read-time checks with deterministic identities; manager acknowledgment/dismissal persistence and required-contact policy editing are not included. The schedule and alert summaries are bounded to 100 entries and state this limit. Full source lists paginate at 40 rows. Printing/export, self-service account recovery, public signup and event membership editing are not exposed as unfinished actions.
+
+## Accommodation bed board
+
+The Web accommodation workflow now provides an event-scoped apartment/room/bed board, optional bed codes, exact listed/agreed prices, whole-event assignment defaults, audited moves and atomic bulk bed creation. Finance remains independent and the interval backend contract remains available. See [behavior, migration and verification](docs/ACCOMMODATION.md).

@@ -104,8 +104,8 @@ test("accommodation warning requires explicit review before saving", async ({
   await page.goto("/e/" + eventId + "/accommodation_assignment/new");
   await page.locator("#field-person_id").selectOption(personId);
   await page.locator("#field-sleeping_place_id").selectOption(bed);
-  await page.locator("#field-start_date").fill("2027-09-01");
-  await page.locator("#field-end_date").fill("2027-09-05");
+  await expect(page.locator("#field-start_date")).toHaveCount(0);
+  await expect(page.locator("#field-end_date")).toHaveCount(0);
   await page.locator("#field-status").selectOption("ACTIVE");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await expect(
@@ -121,7 +121,11 @@ test("accommodation warning requires explicit review before saving", async ({
   await expect(
     page.getByRole("heading", { name: "Stay assignments", exact: true }),
   ).toBeVisible();
-  expect(f.records.accommodation_assignments[0].person_id).toBe(personId);
+  expect(f.records.accommodation_assignments[0]).toMatchObject({
+    person_id: personId,
+    start_date: "2027-09-01",
+    end_date: "2027-09-10",
+  });
 });
 
 test("transport passenger assignment preserves chosen trip and participant", async ({
