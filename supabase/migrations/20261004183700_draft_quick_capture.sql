@@ -276,7 +276,7 @@ create function public.web_list_people(p_event_id uuid,p_query text default '',p
 returns setof jsonb language plpgsql security definer set search_path='' as $$
 begin
  perform people_private.authorize(p_event_id,false);
- if p_query is null or length(p_query)>200 or p_limit is null or p_limit not between 1 and 100 or p_offset is null or p_offset<0 or p_sort not in ('newest','name') or p_deleted is null then raise exception using errcode='22023',message='Invalid search';end if;
+ if p_query is null or length(p_query)>200 or p_limit is null or p_limit not between 1 and 100 or p_offset is null or p_offset<0 or p_sort is null or p_sort not in ('newest','name') or p_deleted is null then raise exception using errcode='22023',message='Invalid search';end if;
  return query select (to_jsonb(p)-'creation_request_id')||jsonb_build_object('display_label',coalesce(nullif(btrim(concat_ws(' ',p.first_name,p.last_name)),''),nullif(btrim(concat_ws(' ',p.hebrew_first_name,p.hebrew_last_name)),''),nullif(btrim(p.phone),''),nullif(btrim(p.whatsapp_phone),''),nullif(btrim(d.email),''),nullif(btrim(d.passport_name),''),''))
  from public.people p join people_private.person_details d on (d.event_id,d.person_id)=(p.event_id,p.id)
  where p.event_id=p_event_id and (p_id is not null or p.is_deleted=p_deleted) and (p_id is null or p.id=p_id) and (p_status is null or p.status=p_status)
@@ -286,3 +286,4 @@ end; $$;
 revoke all on function public.web_list_people(uuid,text,boolean,integer,integer,text,uuid,text) from public,anon,authenticated;
 grant execute on function public.web_list_people(uuid,text,boolean,integer,integer,text,uuid,text) to authenticated;
 commit;
+

@@ -108,7 +108,7 @@ function AlertList({ data, limit = 100 }: { data: Summary; limit?: number }) {
               </span>
               <div>
                 <strong>{t(a.rule)}</strong>
-                <p>{a.label}</p>
+                <p>{a.label?.trim() || t(catalog[a.kind].label)}</p>
               </div>
               <Badge value={a.severity} />
             </Link>

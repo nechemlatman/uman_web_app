@@ -207,7 +207,7 @@ export async function draftChecks({
     const id = await scalar(call("save_" + kind, f));
     await denied(
       call("save_" + kind, { ...f, status: active }, id, 1),
-      "22023",
+      kind === "flight" ? "22023" : "23514",
     );
     const complete = {
       ...f,
