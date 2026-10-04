@@ -1,3 +1,4 @@
+import { DraftIndicator } from "../components/draft-indicator";
 import { wholeEventStay } from "../domain/stay";
 import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
@@ -182,6 +183,7 @@ export function Editor({
           {t("uncertainSave")}
         </p>
       )}
+      <DraftIndicator kind={kind} values={fields} details />
       <form data-dirty={dirty} className="card editor" onSubmit={submit}>
         <div className="form-grid">
           {catalog[kind].fields

@@ -184,7 +184,14 @@ function Schedule({ data, limit = 100 }: { data: Summary; limit?: number }) {
                       <Icon name={catalog[s.kind].group} />
                     </span>
                     <div>
-                      <strong>{s.label}</strong>
+                      <strong>
+                        {s.label?.trim() ||
+                          t(
+                            s.kind === "flight"
+                              ? "untitledFlight"
+                              : "untitledTrip",
+                          )}
+                      </strong>
                       <p>
                         {s.milestone && t(s.milestone)} ·{" "}
                         <bdi>
@@ -208,7 +215,7 @@ function Schedule({ data, limit = 100 }: { data: Summary; limit?: number }) {
 }
 function Search() {
   const { event } = useEvent();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [query, setQuery] = useState("");
   const settled = useDebounced(query);
   const kinds: Kind[] = [
@@ -258,7 +265,7 @@ function Search() {
                   key={row.id}
                   to={"/e/" + event.id + "/" + kinds[i] + "/" + row.id}
                 >
-                  {title(kinds[i], row)}
+                  {title(kinds[i], row, locale)}
                 </Link>
               ))
             )}

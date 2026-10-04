@@ -6,7 +6,7 @@ import { useI18n } from "../i18n/provider";
 import { readStay, save } from "../data/repository";
 import { boardBeds, staySummary, type BoardBed } from "../domain/stay";
 import { encodeFields, initialFields } from "../domain/catalog";
-import type { Kind, RecordRow } from "../domain/model";
+import { title, type Kind, type RecordRow } from "../domain/model";
 import { Badge, Empty, ErrorState, Loading } from "../components/states";
 import { BulkBeds, MoveStay } from "./stay-actions";
 
@@ -61,7 +61,7 @@ export function StayBoard({
   roomId?: string;
 }) {
   const { event, writable } = useEvent(),
-    { t } = useI18n(),
+    { t, locale } = useI18n(),
     qc = useQueryClient();
   const [query, setQuery] = useState(""),
     [state, setState] = useState("all"),
@@ -119,7 +119,7 @@ export function StayBoard({
       (!apartment && !roomId && !b.row.room_id),
   );
   const person = (id: unknown) =>
-    data.people.find((p) => p.id === id)?.label ?? t("notSet");
+    data.people.find((p) => p.id === id)?.label?.trim() || t("unnamedPerson");
   const match = (b: BoardBed) =>
     (state === "all" || b.state === state) &&
     [
@@ -140,13 +140,13 @@ export function StayBoard({
       <section
         className="card stay-room"
         key={room?.id ?? "unplaced"}
-        aria-label={String(room?.name_or_number ?? t("unplacedBeds"))}
+        aria-label={room ? title("room", room, locale) : t("unplacedBeds")}
       >
         <div className="section-heading">
           <h3>
             {room ? (
               <Link to={root + "/room/" + room.id}>
-                {String(room.name_or_number)}
+                {title("room", room, locale)}
               </Link>
             ) : (
               t("unplacedBeds")
@@ -179,8 +179,9 @@ export function StayBoard({
                 <div className="section-heading">
                   <h4>
                     <Link to={root + "/sleeping_place/" + b.row.id}>
-                      {t("bed")}{" "}
-                      {String(b.row.bed_code ?? b.row.id.slice(0, 8))}
+                      {b.row.bed_code
+                        ? t("bed") + " " + String(b.row.bed_code)
+                        : title("sleeping_place", b.row, locale)}
                     </Link>
                   </h4>
                   <Badge value={b.state} />
@@ -333,7 +334,7 @@ export function StayBoard({
                 .filter((a) => !a.is_deleted)
                 .map((a) => (
                   <option key={a.id} value={a.id}>
-                    {String(a.name)}
+                    {title("apartment", a, locale)}
                   </option>
                 ))}
             </select>

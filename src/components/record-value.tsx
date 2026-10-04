@@ -8,7 +8,7 @@ import { title, type Kind, type RecordRow } from "../domain/model";
 import { Badge } from "./states";
 export function Reference({ kind, id }: { kind: Kind; id: string }) {
   const { event } = useEvent();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const q = useQuery({
     queryKey: ["event", event.id, "lookup", kind, id],
     queryFn: () => lookup(event.id, kind, id),
@@ -16,7 +16,9 @@ export function Reference({ kind, id }: { kind: Kind; id: string }) {
   });
   return (
     <Link to={"/e/" + event.id + "/" + kind + "/" + id}>
-      {q.data ? title(kind, q.data) : t(q.error ? "unknownRecord" : "loading")}
+      {q.data
+        ? title(kind, q.data, locale)
+        : t(q.error ? "unknownRecord" : "loading")}
     </Link>
   );
 }

@@ -1,3 +1,4 @@
+import { draftChecks } from "./drafts-db.mjs";
 import { eventSetupChecks } from "./event-setup-db.mjs";
 import { accommodationChecks } from "./accommodation-db.mjs";
 import { PGlite } from "@electric-sql/pglite";
@@ -367,6 +368,17 @@ await eventSetupChecks({
   identity,
   owner,
   other,
+  outsider,
+  event,
+});
+await draftChecks({
+  db,
+  scalar,
+  eq,
+  denied,
+  identity,
+  call,
+  owner,
   outsider,
   event,
 });

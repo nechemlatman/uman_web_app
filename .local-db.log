@@ -1,0 +1,57 @@
+
+> uman-event-manager-web@0.1.0 test:db
+> node tests/database.mjs
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+Caught error:
+
+error: new row for relation "trips" violates check constraint "trips_operational_complete"
+    at async denied (file:///C:/Users/Nechem/Documents/uman_web_app/tests/database.mjs:21:3)
+    at async draftChecks (file:///C:/Users/Nechem/Documents/uman_web_app/tests/drafts-db.mjs:208:5)
+    at async file:///C:/Users/Nechem/Documents/uman_web_app/tests/database.mjs:374:1 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: error: new row for relation "trips" violates check constraint "trips_operational_complete"
+      at pe.Ue (file:///C:/Users/Nechem/Documents/uman_web_app/node_modules/@electric-sql/pglite/dist/chunk-2BOC2OMW.js:1:17959)
+      at pe.tt (file:///C:/Users/Nechem/Documents/uman_web_app/node_modules/@electric-sql/pglite/dist/chunk-2BOC2OMW.js:1:15347)
+      at pe.parse (file:///C:/Users/Nechem/Documents/uman_web_app/node_modules/@electric-sql/pglite/dist/chunk-2BOC2OMW.js:1:14021)
+      at N.qe (file:///C:/Users/Nechem/Documents/uman_web_app/node_modules/@electric-sql/pglite/dist/index.js:5:1762)
+      at file:///C:/Users/Nechem/Documents/uman_web_app/node_modules/@electric-sql/pglite/dist/index.js:5:1155
+      at wasm://wasm/0267bb86:wasm-function[10930]:0x5a5ccf
+      at wasm://wasm/0267bb86:wasm-function[3585]:0x27eaeb
+      at wasm://wasm/0267bb86:wasm-function[3627]:0x2869d1
+      at wasm://wasm/0267bb86:wasm-function[3637]:0x286c2d
+      at wasm://wasm/0267bb86:wasm-function[9914]:0x54fd4d {
+    length: 1356,
+    severity: 'ERROR',
+    code: '23514',
+    detail: 'Failing row contains (45d7778c-542c-4a18-a555-41a487688021, 44444444-4444-4444-8444-444444444444, 07d4a36e-f388-4400-a90e-80d224babe02, {"notes": "Confirm route", "status": "PLANNED", "direction": "IN..., INBOUND, null, null, null, null, null, null, null, null, null, CONFIRMED, Confirm route, f, null, f, null, 2026-10-04 14:05:03.19+02, 2026-10-04 14:05:03.195+02, 11111111-1111-4111-8111-111111111111, 11111111-1111-4111-8111-111111111111, 2).',
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: 'SQL statement "update public.trips t set direction=x.direction,origin=x.origin,destination=x.destination,scheduled_departure_utc=x.scheduled_departure_utc,scheduled_arrival_utc=x.scheduled_arrival_utc,actual_departure_utc=x.actual_departure_utc,actual_arrival_utc=x.actual_arrival_utc,driver_id=x.driver_id,vehicle_id=x.vehicle_id,related_flight_id=x.related_flight_id,status=x.status,notes=x.notes,is_locked=x.is_locked,version=t.version+1,updated_at_utc=clock_timestamp(),updated_by=$3 from jsonb_populate_record(null::public.trips,$4) x where t.id=$1 and t.event_id=$2 returning t.id"\n' +
+      'PL/pgSQL function trips_private.save(boolean,uuid,uuid,uuid,bigint,jsonb) line 40 at EXECUTE\n' +
+      'SQL function "save_trip" statement 1',
+    schema: 'public',
+    table: 'trips',
+    column: undefined,
+    dataType: undefined,
+    constraint: 'trips_operational_complete',
+    file: 'execMain.c',
+    line: '2081',
+    routine: 'ExecConstraints',
+    query: `select public.save_trip('44444444-4444-4444-8444-444444444444','00d264f3-298c-43e3-abb7-f4c924f679a6','45d7778c-542c-4a18-a555-41a487688021',1,'{"direction":"INBOUND","status":"CONFIRMED","is_locked":false,"notes":"Confirm route"}'::jsonb)`,
+    params: undefined,
+    queryOptions: undefined
+  },
+  expected: [Function (anonymous)],
+  operator: 'rejects'
+}
+
+Node.js v22.16.0

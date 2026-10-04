@@ -1,3 +1,9 @@
+import {
+  captureIdentity,
+  meaningful,
+  operationalMissing,
+  isOperational,
+} from "./drafts";
 import { validStayPrice } from "./stay";
 import type { Fields, Kind } from "./model";
 export function civilDate(value: string): boolean {
@@ -16,16 +22,11 @@ export function validate(kind: Kind, f: Fields): Record<string, string> {
   const require = (k: string) => {
     if (f[k] == null || String(f[k]).trim() === "") errors[k] = "required";
   };
-  const identity: Partial<Record<Kind, string>> = {
-    person: "first_name",
-    driver: "full_name",
-    vehicle: "name",
-    apartment: "name",
-    room: "name_or_number",
-    task: "title",
-    apartment_issue: "title",
-  };
-  if (identity[kind]) require(identity[kind]!);
+  const identity = captureIdentity[kind];
+  if (identity && !meaningful(f, identity))
+    errors[identity[0]] = "meaningfulCapture";
+  if (isOperational(kind, f))
+    for (const key of operationalMissing(kind, f)) require(key);
   for (const [k, v] of Object.entries(f)) {
     if (
       typeof v === "string" &&
@@ -63,6 +64,8 @@ export function validate(kind: Kind, f: Fields): Record<string, string> {
     errors.scheduled_arrival_utc = "dateOrder";
   if (
     kind === "vehicle" &&
+    f.capacity != null &&
+    f.capacity !== "" &&
     (!Number.isInteger(Number(f.capacity)) || Number(f.capacity) < 1)
   )
     errors.capacity = "positive";
@@ -72,42 +75,8 @@ export function validate(kind: Kind, f: Fields): Record<string, string> {
     kind === "accommodation_assignment"
   )
     errors.notes = "required";
-  if (
-    kind === "flight" &&
-    ["SCHEDULED", "DELAYED", "DIVERTED", "LANDED"].includes(String(f.status))
-  )
-    [
-      "airline",
-      "flight_number",
-      "departure_airport",
-      "arrival_airport",
-      "scheduled_departure_utc",
-      "scheduled_arrival_utc",
-    ].forEach(require);
-  if (
-    kind === "trip" &&
-    ["CONFIRMED", "IN_PROGRESS", "COMPLETED"].includes(String(f.status))
-  )
-    [
-      "origin",
-      "destination",
-      "scheduled_departure_utc",
-      "scheduled_arrival_utc",
-    ].forEach(require);
-  if (kind === "sleeping_place" && f.is_active) {
-    ["room_id", "type"].forEach(require);
-    if (f.type === "CUSTOM") require("custom_type_name");
-  }
-  if (
-    kind === "accommodation_assignment" &&
-    ["ACTIVE", "TEMPORARY"].includes(String(f.status))
-  )
-    ["person_id", "sleeping_place_id", "start_date", "end_date"].forEach(
-      require,
-    );
   if (kind === "flight_passenger") ["flight_id", "person_id"].forEach(require);
   if (kind === "trip_passenger") ["trip_id", "person_id"].forEach(require);
-  if (kind === "apartment_issue") require("apartment_id");
   if (kind === "payment" || kind === "expense") {
     const amount = kind === "payment" ? "amount" : "original_amount";
     require(amount);

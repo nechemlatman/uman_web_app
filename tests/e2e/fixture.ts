@@ -215,7 +215,9 @@ export async function fixture(page: Page) {
           id: r.id,
           event_id: eventId,
           is_deleted: false,
-          label: String(r.first_name) + " " + String(r.last_name),
+          label:
+            [r.first_name, r.last_name].filter(Boolean).join(" ") ||
+            String(r.phone ?? ""),
         })),
         overlaps: [],
       });
@@ -259,6 +261,44 @@ export async function fixture(page: Page) {
       source.version = Number(source.version) + 1;
       records.accommodation_assignments.push(next);
       return respond(next.id);
+    }
+    if (name === "web_list_people") {
+      let rows = records.people.filter(
+        (r) =>
+          (body.p_id
+            ? r.id === body.p_id
+            : !!r.is_deleted === !!body.p_deleted) &&
+          (!body.p_status || r.status === body.p_status),
+      );
+      if (body.p_query)
+        rows = rows.filter((r) =>
+          [
+            "first_name",
+            "last_name",
+            "hebrew_first_name",
+            "hebrew_last_name",
+            "phone",
+            "whatsapp_phone",
+            "email",
+            "passport_name",
+            "notes",
+          ]
+            .map((k) => String(r[k] ?? ""))
+            .join(" ")
+            .toLowerCase()
+            .includes(String(body.p_query).toLowerCase()),
+        );
+      return respond(
+        rows.map((r) => ({
+          ...r,
+          display_label:
+            [r.first_name, r.last_name].filter(Boolean).join(" ") ||
+            r.phone ||
+            r.email ||
+            r.passport_name ||
+            "",
+        })),
+      );
     }
     if (name === "person_duplicates") return respond([]);
     if (name === "read_person" || name === "read_trip")

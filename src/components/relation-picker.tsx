@@ -21,7 +21,7 @@ export function RelationPicker({
   required?: boolean;
 }) {
   const { event } = useEvent();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const settled = useDebounced(search);
@@ -66,7 +66,7 @@ export function RelationPicker({
         <option value="">{t("select")}</option>
         {options.map((row) => (
           <option key={row.id} value={row.id}>
-            {title(kind, row)}
+            {title(kind, row, locale)}
             {row.is_deleted ? " · " + t("archived") : ""}
           </option>
         ))}

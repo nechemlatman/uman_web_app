@@ -1,3 +1,4 @@
+import { DraftIndicator } from "../components/draft-indicator";
 import { useState } from "react";
 import {
   Link,
@@ -55,7 +56,7 @@ export function Records({
   compact?: boolean;
 }) {
   const { event, writable } = useEvent();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [params, setParams] = useSearchParams();
   const [localPage, setLocalPage] = useState(0);
   const [query, setQuery] = useState("");
@@ -252,9 +253,10 @@ export function Records({
             <article className="card entity-card" key={r.id}>
               <h3>
                 <Link to={root + "/" + r.id}>
-                  {title(kind, r) || t(catalog[kind].label)}
+                  {title(kind, r, locale) || t(catalog[kind].label)}
                 </Link>
               </h3>
+              <DraftIndicator kind={kind} values={r} />
               {catalog[kind].columns.map((c) => (
                 <p key={c}>
                   <ColumnValue kind={kind} column={c} row={r} />
@@ -283,8 +285,9 @@ export function Records({
                 <tr key={r.id}>
                   <td>
                     <Link className="record-title" to={root + "/" + r.id}>
-                      {title(kind, r) || t(catalog[kind].label)}
-                    </Link>
+                      {title(kind, r, locale) || t(catalog[kind].label)}
+                    </Link>{" "}
+                    <DraftIndicator kind={kind} values={r} />
                   </td>
                   {catalog[kind].columns.map((c) => (
                     <td

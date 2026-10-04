@@ -56,7 +56,6 @@ export const catalog: Record<
     columns: ["phone", "status"],
     fields: [
       f("first_name", "firstName", "text", {
-        required: true,
         section: "identity",
       }),
       f("last_name", "lastName", "text", { default: "" }),
@@ -133,11 +132,11 @@ export const catalog: Record<
     group: "travel",
     columns: ["phone_number", "status"],
     fields: [
-      f("full_name", "fullName", "text", { required: true }),
+      f("full_name", "fullName"),
       f("phone_number", "phone", "tel", { default: "" }),
       f("whatsapp_phone", "whatsapp", "tel", { default: "" }),
       f("license_number", "license", "text", { default: "" }),
-      status(["AVAILABLE", "BUSY", "UNAVAILABLE", "OFF_DUTY"]),
+      status(["AVAILABLE", "BUSY", "UNAVAILABLE", "OFF_DUTY"], "UNAVAILABLE"),
       notes,
     ],
   },
@@ -146,15 +145,18 @@ export const catalog: Record<
     group: "travel",
     columns: ["vehicle_type", "capacity", "license_plate", "status"],
     fields: [
-      f("name", "name", "text", { required: true, max: 100 }),
+      f("name", "name", "text", { max: 100 }),
       f("vehicle_type", "type", "select", {
         options: ["CAR", "VAN", "MINIBUS", "BUS", "CUSTOM"],
         default: "VAN",
       }),
       f("license_plate", "registration", "text", { default: "" }),
       f("color", "color", "text", { default: "" }),
-      f("capacity", "capacity", "number", { required: true, default: 1 }),
-      status(["AVAILABLE", "IN_USE", "MAINTENANCE", "UNAVAILABLE"]),
+      f("capacity", "capacity", "number"),
+      status(
+        ["AVAILABLE", "IN_USE", "MAINTENANCE", "UNAVAILABLE"],
+        "UNAVAILABLE",
+      ),
       notes,
     ],
   },
@@ -206,7 +208,7 @@ export const catalog: Record<
     group: "stay",
     columns: ["address", "status"],
     fields: [
-      f("name", "name", "text", { required: true }),
+      f("name", "name"),
       f("address", "address"),
       f("hebrew_address", "hebrewAddress"),
       f("floor", "floor"),
@@ -225,7 +227,7 @@ export const catalog: Record<
     group: "stay",
     columns: ["apartment_id", "floor"],
     fields: [
-      f("name_or_number", "roomName", "text", { required: true }),
+      f("name_or_number", "roomName"),
       ref("apartment_id", "apartment", "apartment"),
       f("floor", "floor"),
       f("description", "description", "textarea"),
@@ -275,7 +277,7 @@ export const catalog: Record<
     group: "operations",
     columns: ["priority", "due_date_utc", "status"],
     fields: [
-      f("title", "title", "text", { required: true }),
+      f("title", "title"),
       f("description", "description", "textarea"),
       ref("assignee_id", "assignee", "person"),
       f("priority", "priority", "select", {
@@ -292,8 +294,8 @@ export const catalog: Record<
     group: "operations",
     columns: ["apartment_id", "priority", "status"],
     fields: [
-      f("title", "title", "text", { required: true }),
-      ref("apartment_id", "apartment", "apartment", true),
+      f("title", "title"),
+      ref("apartment_id", "apartment", "apartment"),
       f("description", "description", "textarea"),
       ref("reporter_id", "reporter", "person"),
       f("priority", "priority", "select", {
