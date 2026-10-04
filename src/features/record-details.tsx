@@ -1,3 +1,4 @@
+import { StayBoard } from "./stay-board";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -140,14 +141,29 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
         </dl>
         {financial && <p className="notice">{t("immutableFinance")}</p>}
       </article>
-      {(relations[kind] ?? []).map(([related, key]) => (
-        <Records
-          key={related}
-          kind={related}
-          compact
-          filter={{ key, value: row.id }}
+      {!row.is_deleted && (kind === "apartment" || kind === "room") && (
+        <StayBoard
+          key={row.id}
+          apartmentId={kind === "apartment" ? row.id : undefined}
+          roomId={kind === "room" ? row.id : undefined}
         />
-      ))}
+      )}
+      {(relations[kind] ?? [])
+        .filter(
+          ([related]) =>
+            !(
+              (kind === "apartment" && related === "room") ||
+              (kind === "room" && related === "sleeping_place")
+            ),
+        )
+        .map(([related, key]) => (
+          <Records
+            key={related}
+            kind={related}
+            compact
+            filter={{ key, value: row.id }}
+          />
+        ))}
       <section className="card">
         <button
           className="quiet"

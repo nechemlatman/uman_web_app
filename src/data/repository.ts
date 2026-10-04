@@ -10,6 +10,14 @@ import {
   type Fields,
 } from "../domain/model";
 export const PAGE_SIZE = 40;
+const projection = (kind: Kind) =>
+  kind === "sleeping_place"
+    ? "*,listed_price::text"
+    : kind === "accommodation_assignment"
+      ? "*,agreed_price::text"
+      : kind === "apartment"
+        ? "*,total_cost::text"
+        : "*";
 export async function rpc<T>(
   name: string,
   params: Record<string, unknown>,
@@ -44,7 +52,7 @@ const searchColumns: Partial<Record<Kind, string[]>> = {
   trip: ["origin", "destination"],
   apartment: ["name", "address"],
   room: ["name_or_number"],
-  sleeping_place: ["label"],
+  sleeping_place: ["bed_code", "label"],
   task: ["title"],
   apartment_issue: ["title"],
   payment: ["reference"],
@@ -73,7 +81,7 @@ export async function list(
     );
   let q = backend()
     .from(tables[kind])
-    .select(kind === "apartment" ? "*,total_cost::text" : "*")
+    .select(projection(kind))
     .eq("event_id", eventId)
     .eq("is_deleted", deleted);
   if (filter)
@@ -112,7 +120,7 @@ export async function lookup(eventId: string, kind: Kind, id: string) {
     .select(
       kind === "person"
         ? "id,event_id,version,is_deleted,first_name,last_name"
-        : "*",
+        : projection(kind),
     )
     .eq("event_id", eventId)
     .eq("id", id)
@@ -138,7 +146,7 @@ export async function read(eventId: string, kind: Kind, id: string) {
   }
   const { data, error } = await backend()
     .from(tables[kind])
-    .select(kind === "apartment" ? "*,total_cost::text" : "*")
+    .select(projection(kind))
     .eq("event_id", eventId)
     .eq("id", id)
     .single();
@@ -271,3 +279,71 @@ export function availability(
     p_available_only: availableOnly,
   });
 }
+
+export async function readStay(
+  eventId: string,
+): Promise<import("../domain/stay").StayData> {
+  const data = await rpc<Record<string, unknown>>("read_accommodation", {
+    p_event_id: eventId,
+  });
+  const people = z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        event_id: z.string().uuid(),
+        label: z.string(),
+        is_deleted: z.boolean(),
+      }),
+    )
+    .parse(data.people);
+  if (people.some((p) => p.event_id !== eventId)) throw new Error("scope");
+  const beds = scopedRows(data.sleeping_places, eventId);
+  const assignments = scopedRows(data.accommodation_assignments, eventId);
+  for (const [rows, key] of [
+    [beds, "listed_price"],
+    [assignments, "agreed_price"],
+  ] as const)
+    for (const row of rows)
+      z.string()
+        .regex(/^\d{1,16}(\.\d{1,4})?$/)
+        .nullable()
+        .parse(row[key]);
+  return {
+    apartments: scopedRows(data.apartments, eventId),
+    rooms: scopedRows(data.rooms, eventId),
+    sleeping_places: beds,
+    accommodation_assignments: assignments,
+    people,
+  };
+}
+export const createBeds = (
+  eventId: string,
+  roomId: string,
+  requestId: string,
+  count: number,
+  start: string,
+  price: string | null,
+) =>
+  rpc<string[]>("web_create_beds", {
+    p_event_id: eventId,
+    p_room_id: roomId,
+    p_request_id: requestId,
+    p_count: count,
+    p_start_code: start,
+    p_listed_price: price,
+  });
+export const moveStay = (
+  eventId: string,
+  row: RecordRow,
+  bedId: string,
+  requestId: string,
+) => {
+  if (row.event_id !== eventId) throw new Error("scope");
+  return rpc<string>("web_move_stay", {
+    p_event_id: eventId,
+    p_id: row.id,
+    p_expected_version: row.version,
+    p_sleeping_place_id: bedId,
+    p_request_id: requestId,
+  });
+};

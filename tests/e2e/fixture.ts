@@ -173,6 +173,66 @@ export async function fixture(page: Page) {
             ]
           : [],
       );
+    if (name === "read_accommodation")
+      return respond({
+        apartments: records.apartments ?? [],
+        rooms: records.rooms ?? [],
+        sleeping_places: (records.sleeping_places ?? []).map((r) => ({
+          listed_price: null,
+          ...r,
+        })),
+        accommodation_assignments: (
+          records.accommodation_assignments ?? []
+        ).map((r) => ({ agreed_price: null, ...r })),
+        people: records.people.map((r) => ({
+          id: r.id,
+          event_id: eventId,
+          is_deleted: false,
+          label: String(r.first_name) + " " + String(r.last_name),
+        })),
+        overlaps: [],
+      });
+    if (name === "web_create_beds") {
+      const ids: string[] = [];
+      for (let i = 0; i < Number(body.p_count); i++) {
+        const id = crypto.randomUUID();
+        ids.push(id);
+        const start = String(body.p_start_code);
+        const code =
+          Number(body.p_count) === 1
+            ? start
+            : start.replace(/[0-9]+$/, (n) =>
+                String(Number(n) + i).padStart(n.length, "0"),
+              );
+        (records.sleeping_places ??= []).push({
+          ...common,
+          id,
+          room_id: body.p_room_id,
+          bed_code: code,
+          listed_price: body.p_listed_price,
+          is_active: true,
+          type: "REGULAR_BED",
+        });
+      }
+      return respond(ids);
+    }
+    if (name === "web_move_stay") {
+      const source = records.accommodation_assignments.find(
+        (r) => r.id === body.p_id,
+      )!;
+      const next = {
+        ...source,
+        id: crypto.randomUUID(),
+        sleeping_place_id: body.p_sleeping_place_id,
+        version: 1,
+        start_date: event.start_date,
+        end_date: event.end_date,
+      };
+      source.status = "CANCELLED";
+      source.version = Number(source.version) + 1;
+      records.accommodation_assignments.push(next);
+      return respond(next.id);
+    }
     if (name === "person_duplicates") return respond([]);
     if (name === "read_person" || name === "read_trip")
       return respond(

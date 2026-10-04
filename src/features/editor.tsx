@@ -1,3 +1,4 @@
+import { wholeEventStay } from "../domain/stay";
 import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -20,6 +21,8 @@ export function Editor({
   preset?: Fields;
 }) {
   const { event, writable } = useEvent();
+  if (kind === "accommodation_assignment" && !row)
+    preset = wholeEventStay(event, preset);
   const { t } = useI18n();
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -150,11 +153,28 @@ export function Editor({
         <p className="notice">{t("utcHint")}</p>
       )}
       {kind === "accommodation_assignment" && (
-        <p className="notice">{t("stayHint")}</p>
+        <div className="notice">
+          <p>{t("wholeEventStay")}</p>
+          <p>
+            {String(fields.start_date ?? "—")} —{" "}
+            {String(fields.end_date ?? "—")}
+          </p>
+          {(!fields.start_date || !fields.end_date) && (
+            <p>{t("eventDatesRequired")}</p>
+          )}
+          {row &&
+            (row.start_date !== event.start_date ||
+              row.end_date !== event.end_date) && <p>{t("legacyStayDates")}</p>}
+        </div>
       )}
       {["payment", "expense"].includes(kind) && (
         <p className="notice">
           {t("financeHint")} {t("immutableFinance")}
+        </p>
+      )}
+      {["sleeping_place", "accommodation_assignment"].includes(kind) && (
+        <p className="notice">
+          {t("stayPricingHint")} <bdi>{event.base_currency}</bdi>
         </p>
       )}
       {uncertain && (
@@ -164,127 +184,134 @@ export function Editor({
       )}
       <form data-dirty={dirty} className="card editor" onSubmit={submit}>
         <div className="form-grid">
-          {catalog[kind].fields.map((field) => {
-            const immutable =
-              !!base &&
-              ((["flight_passenger", "trip_passenger"].includes(kind) &&
-                ["person_id", "flight_id", "trip_id"].includes(field.key)) ||
-                (kind === "room" &&
-                  field.key === "apartment_id" &&
-                  !!base.apartment_id) ||
-                (kind === "sleeping_place" &&
-                  field.key === "room_id" &&
-                  !!base.room_id) ||
-                (kind === "accommodation_assignment" &&
-                  !!base.has_been_operational &&
-                  ["person_id", "sleeping_place_id"].includes(field.key)));
-            const id = "field-" + field.key;
-            const value = fields[field.key];
-            return (
-              <Fragment key={field.key}>
-                {field.section && (
-                  <h2 className="form-section">{t(field.section)}</h2>
-                )}
-                <div
-                  className={
-                    "field " + (field.type === "textarea" ? "wide" : "")
-                  }
-                  key={field.key}
-                >
-                  <label htmlFor={id}>
-                    {t(field.label)}
-                    {field.required && (
-                      <span aria-label={t("requiredMark")}> *</span>
-                    )}
-                  </label>
-                  {field.relation ? (
-                    <RelationPicker
-                      id={id}
-                      kind={field.relation}
-                      value={String(value ?? "")}
-                      disabled={immutable || pending || uncertain}
-                      required={field.required}
-                      onChange={(v) => change(field.key, v)}
-                    />
-                  ) : field.type === "textarea" ? (
-                    <textarea
-                      id={id}
-                      required={field.required}
-                      rows={4}
-                      value={String(value ?? "")}
-                      onChange={(e) => change(field.key, e.target.value)}
-                      maxLength={field.max ?? 10000}
-                      disabled={pending || uncertain}
-                    />
-                  ) : field.type === "select" ? (
-                    <select
-                      id={id}
-                      value={String(value ?? "")}
-                      onChange={(e) => change(field.key, e.target.value)}
-                      disabled={pending || uncertain}
-                    >
-                      {!field.default && (
-                        <option value="">{t("select")}</option>
+          {catalog[kind].fields
+            .filter(
+              (field) =>
+                kind !== "accommodation_assignment" ||
+                !["start_date", "end_date"].includes(field.key),
+            )
+            .map((field) => {
+              const immutable =
+                !!base &&
+                ((["flight_passenger", "trip_passenger"].includes(kind) &&
+                  ["person_id", "flight_id", "trip_id"].includes(field.key)) ||
+                  (kind === "room" &&
+                    field.key === "apartment_id" &&
+                    !!base.apartment_id) ||
+                  (kind === "sleeping_place" &&
+                    field.key === "room_id" &&
+                    !!base.room_id) ||
+                  (kind === "accommodation_assignment" &&
+                    !!base.has_been_operational &&
+                    ["person_id", "sleeping_place_id"].includes(field.key)));
+              const id = "field-" + field.key;
+              const value = fields[field.key];
+              return (
+                <Fragment key={field.key}>
+                  {field.section && (
+                    <h2 className="form-section">{t(field.section)}</h2>
+                  )}
+                  <div
+                    className={
+                      "field " + (field.type === "textarea" ? "wide" : "")
+                    }
+                    key={field.key}
+                  >
+                    <label htmlFor={id}>
+                      {t(field.label)}
+                      {field.required && (
+                        <span aria-label={t("requiredMark")}> *</span>
                       )}
-                      {field.options?.map((o) => (
-                        <option key={o} value={o}>
-                          {t(o)}
-                        </option>
-                      ))}
-                    </select>
-                  ) : field.type === "checkbox" ? (
-                    <input
-                      id={id}
-                      type="checkbox"
-                      checked={Boolean(value)}
-                      onChange={(e) => change(field.key, e.target.checked)}
-                      disabled={pending || uncertain}
-                    />
-                  ) : (
-                    <input
-                      id={id}
-                      type={
-                        field.type === "decimal"
-                          ? "text"
-                          : (field.type ?? "text")
-                      }
-                      inputMode={
-                        field.type === "decimal" ? "decimal" : undefined
-                      }
-                      dir={
-                        [
-                          "tel",
-                          "number",
-                          "decimal",
-                          "date",
-                          "datetime-local",
-                          "email",
-                        ].includes(field.type ?? "")
-                          ? "ltr"
-                          : "auto"
-                      }
-                      value={String(value ?? "")}
-                      onChange={(e) => change(field.key, e.target.value)}
-                      required={field.required}
-                      aria-invalid={!!errors[field.key]}
-                      aria-describedby={
-                        errors[field.key] ? id + "-error" : undefined
-                      }
-                      maxLength={
-                        field.max ?? (field.key.includes("notes") ? 10000 : 320)
-                      }
-                      disabled={pending || uncertain}
-                    />
-                  )}
-                  {errors[field.key] && (
-                    <small id={id + "-error"} className="field-error">
-                      {t(errors[field.key])}
-                    </small>
-                  )}
-                </div>
-              </Fragment>
-            );
-          })}
+                    </label>
+                    {field.relation ? (
+                      <RelationPicker
+                        id={id}
+                        kind={field.relation}
+                        value={String(value ?? "")}
+                        disabled={immutable || pending || uncertain}
+                        required={field.required}
+                        onChange={(v) => change(field.key, v)}
+                      />
+                    ) : field.type === "textarea" ? (
+                      <textarea
+                        id={id}
+                        required={field.required}
+                        rows={4}
+                        value={String(value ?? "")}
+                        onChange={(e) => change(field.key, e.target.value)}
+                        maxLength={field.max ?? 10000}
+                        disabled={pending || uncertain}
+                      />
+                    ) : field.type === "select" ? (
+                      <select
+                        id={id}
+                        value={String(value ?? "")}
+                        onChange={(e) => change(field.key, e.target.value)}
+                        disabled={pending || uncertain}
+                      >
+                        {!field.default && (
+                          <option value="">{t("select")}</option>
+                        )}
+                        {field.options?.map((o) => (
+                          <option key={o} value={o}>
+                            {t(o)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field.type === "checkbox" ? (
+                      <input
+                        id={id}
+                        type="checkbox"
+                        checked={Boolean(value)}
+                        onChange={(e) => change(field.key, e.target.checked)}
+                        disabled={pending || uncertain}
+                      />
+                    ) : (
+                      <input
+                        id={id}
+                        type={
+                          field.type === "decimal"
+                            ? "text"
+                            : (field.type ?? "text")
+                        }
+                        inputMode={
+                          field.type === "decimal" ? "decimal" : undefined
+                        }
+                        dir={
+                          [
+                            "tel",
+                            "number",
+                            "decimal",
+                            "date",
+                            "datetime-local",
+                            "email",
+                          ].includes(field.type ?? "")
+                            ? "ltr"
+                            : "auto"
+                        }
+                        value={String(value ?? "")}
+                        onChange={(e) => change(field.key, e.target.value)}
+                        required={field.required}
+                        aria-invalid={!!errors[field.key]}
+                        aria-describedby={
+                          errors[field.key] ? id + "-error" : undefined
+                        }
+                        maxLength={
+                          field.max ??
+                          (field.key.includes("notes") ? 10000 : 320)
+                        }
+                        disabled={pending || uncertain}
+                      />
+                    )}
+                    {errors[field.key] && (
+                      <small id={id + "-error"} className="field-error">
+                        {t(errors[field.key])}
+                      </small>
+                    )}
+                  </div>
+                </Fragment>
+              );
+            })}
         </div>
         {!!error && <ErrorState error={error} />}{" "}
         {!!error && errorCode(error) === "conflict" && base && (

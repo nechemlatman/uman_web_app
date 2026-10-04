@@ -64,6 +64,8 @@ export const text = (r: RecordRow | Fields, key: string): string =>
 export const title = (kind: Kind, r: RecordRow): string => {
   if (kind === "person")
     return [r.first_name, r.last_name].filter(Boolean).join(" ");
+  if (kind === "sleeping_place" && r.bed_code)
+    return [r.bed_code, r.label].filter(Boolean).join(" · ");
   if (kind === "trip")
     return [r.origin, r.destination].filter(Boolean).join(" → ");
   if (

@@ -1,3 +1,4 @@
+import { accommodationChecks } from "./accommodation-db.mjs";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
 import assert from "node:assert/strict";
@@ -343,5 +344,19 @@ await denied(`select public.web_command_center('${event}')`, "42501");
 await identity("", "anon");
 await denied(`select * from public.tasks`, "42501");
 await denied(call("save_task", taskFields), "42501");
+await accommodationChecks({
+  db,
+  scalar,
+  eq,
+  denied,
+  identity,
+  call,
+  owner,
+  other,
+  outsider,
+  event,
+  room,
+  person,
+});
 console.log("Database checks passed:", checks);
 await db.close();

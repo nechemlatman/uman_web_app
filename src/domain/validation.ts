@@ -1,3 +1,4 @@
+import { validStayPrice } from "./stay";
 import type { Fields, Kind } from "./model";
 export function civilDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -9,6 +10,9 @@ export function overlaps(a: string, b: string, c: string, d: string) {
 }
 export function validate(kind: Kind, f: Fields): Record<string, string> {
   const errors: Record<string, string> = {};
+  for (const key of ["listed_price", "agreed_price"])
+    if (f[key] != null && f[key] !== "" && !validStayPrice(String(f[key])))
+      errors[key] = "stayPriceInvalid";
   const require = (k: string) => {
     if (f[k] == null || String(f[k]).trim() === "") errors[k] = "required";
   };

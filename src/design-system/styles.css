@@ -1308,3 +1308,76 @@ tbody tr:hover {
   margin: 24px 0 8px;
   color: var(--muted);
 }
+
+/* Accommodation board: room groups and cards stay within the viewport. */
+.stay-board,
+.stay-apartment,
+.stay-room {
+  min-width: 0;
+  margin-block: var(--space-5);
+}
+.stay-bed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: var(--space-4);
+}
+.stay-bed {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--success);
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+.stay-bed.state-occupied {
+  border-inline-start-color: var(--navy);
+}
+.stay-bed.state-reserved {
+  border-inline-start-color: var(--gold);
+}
+.stay-bed.state-inactive {
+  border-inline-start-color: var(--muted);
+}
+.stay-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+}
+.stay-totals > div {
+  min-width: 0;
+  flex: 1 1 110px;
+}
+.stay-totals dt {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.stay-totals dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.stay-totals small {
+  display: block;
+  font-weight: 400;
+}
+.stay-occupant {
+  margin-block: var(--space-3);
+  padding-block: var(--space-3);
+  border-block-start: 1px solid var(--line);
+}
+.stay-board .actions,
+.stay-board .section-heading {
+  flex-wrap: wrap;
+}
+.stay-board .actions {
+  gap: var(--space-2);
+}
+.stay-board input,
+.stay-board select {
+  max-width: 100%;
+  min-width: 0;
+}
+.stay-action {
+  margin-block: var(--space-4);
+}
