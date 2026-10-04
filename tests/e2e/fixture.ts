@@ -61,7 +61,13 @@ export async function fixture(page: Page) {
       ],
       events: [{ ...event }],
     },
-    state = { conflict: false, warnings: false, denied: false };
+    state = {
+      conflict: false,
+      warnings: false,
+      denied: false,
+      canCreate: true,
+      createUncertain: false,
+    };
   const token =
     btoa(JSON.stringify({ alg: "HS256", typ: "JWT" })) +
     "." +
@@ -149,6 +155,27 @@ export async function fixture(page: Page) {
     if (name === "logout") return respond({});
     if (name === "user")
       return respond({ id: actor, email: "manager@example.test" });
+    if (name === "web_can_create_event") return respond(state.canCreate);
+    if (name === "web_create_event") {
+      if (!state.canCreate) return respond({ code: "42501" }, 403);
+      let created = records.events.find(
+        (r) => r.creation_request_id === body.p_request_id,
+      );
+      if (!created) {
+        created = {
+          ...event,
+          ...(body.p_fields as Row),
+          id: crypto.randomUUID(),
+          creation_request_id: body.p_request_id,
+        };
+        records.events.unshift(created);
+      }
+      if (state.createUncertain) {
+        state.createUncertain = false;
+        return route.abort("failed");
+      }
+      return respond(created.id);
+    }
     if (name === "web_command_center")
       return respond({
         counts: { people: 1, assignments: 0, tasks: 0, issues: 0, beds: 0 },
@@ -274,6 +301,11 @@ export async function fixture(page: Page) {
     }
     if (name === "web_request_status") return respond(null);
     if (name === "edit_event_details") {
+      if (state.conflict) {
+        state.conflict = false;
+        records.events[0].version = Number(records.events[0].version) + 1;
+        return respond({ code: "40001" }, 409);
+      }
       records.events[0] = {
         ...records.events[0],
         ...Object.fromEntries(

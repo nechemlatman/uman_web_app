@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { backend, configured } from "../data/client";
-import { events } from "../data/repository";
+import { events, canCreateEvent } from "../data/repository";
 import { useSession } from "../app/session";
 import { useI18n, formatDate } from "../i18n/provider";
 import { Loading, ErrorState, Badge } from "../components/states";
@@ -112,6 +112,12 @@ export function EventSelection() {
     queryFn: events,
     enabled: !!session,
   });
+  const eligibility = useQuery({
+    queryKey: ["event-create-access", session?.user.id],
+    queryFn: canCreateEvent,
+    enabled: !!session,
+    refetchInterval: 20000,
+  });
   const [error, setError] = useState<unknown>();
   if (loading) return <Loading />;
   if (!session) return <Navigate to="/" replace />;
@@ -124,7 +130,20 @@ export function EventSelection() {
         <LanguageButton />
       </header>
       <p className="eyebrow">{t("secureAccess")}</p>
-      <h1>{t("eventAccess")}</h1>
+      <div className="section-heading">
+        <h1>{t("eventAccess")}</h1>
+        {eligibility.data && !eligibility.error && (
+          <Link className="button primary" to="/events/new">
+            {t("createEvent")}
+          </Link>
+        )}
+      </div>
+      {!!eligibility.error && (
+        <ErrorState
+          error={eligibility.error}
+          retry={() => void eligibility.refetch()}
+        />
+      )}
       {q.isPending ? (
         <Loading />
       ) : q.error ? (
@@ -148,7 +167,11 @@ export function EventSelection() {
       ) : (
         <div className="card empty">
           <h2>{t("noEvents")}</h2>
-          <p>{t("noEventsHelp")}</p>
+          <p>
+            {t(
+              eligibility.data ? "createFirstEvent" : "eventCreationRestricted",
+            )}
+          </p>
         </div>
       )}
       {!!error && <ErrorState error={error} />}

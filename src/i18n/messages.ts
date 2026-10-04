@@ -1,4 +1,23 @@
 export const en = {
+  optional: "Optional",
+  createEvent: "Create event",
+  backToEvents: "Back to events",
+  createFirstEvent: "Create an event to start planning.",
+  eventCreationRestricted:
+    "Event creation requires an existing administrator membership. Ask your administrator to provision access.",
+  eventPeriodHint:
+    "Start and end dates define the operational event period and default accommodation assignments. You can leave them blank while planning; complete them before making active assignments.",
+  eventDatesWarning:
+    "Changing these dates does not change existing assignments or other records. Review their dates after saving.",
+  eventCreateUncertain:
+    "Creation may have succeeded. Keep this form open and retry to confirm the same request; no duplicate event will be created.",
+  eventNameInvalid: "Enter an event name of 1–200 characters.",
+  eventTextTooLong: "This text exceeds the allowed length.",
+  eventYearInvalid:
+    "Enter a whole year between 1900 and 2200, or leave it blank.",
+  eventDateInvalid: "Enter a valid calendar date.",
+  eventRangeInvalid: "End date must be after start date.",
+  eventCurrencyInvalid: "Choose a supported event currency, or leave it blank.",
   bedBoard: "Accommodation bed board",
   bed: "Bed",
   bedCode: "Physical bed number / code",
@@ -409,6 +428,24 @@ export const en = {
 export type MessageKey = keyof typeof en;
 export const he: Record<MessageKey, string> = {
   ...en,
+  optional: "רשות",
+  createEvent: "יצירת אירוע",
+  backToEvents: "חזרה לאירועים",
+  createFirstEvent: "צרו אירוע כדי להתחיל בתכנון.",
+  eventCreationRestricted:
+    "יצירת אירוע דורשת הרשאת מנהל באירוע קיים. פנו למנהל המערכת לקבלת גישה.",
+  eventPeriodHint:
+    "תאריכי ההתחלה והסיום מגדירים את תקופת האירוע ואת ברירת המחדל לשיבוצי הלינה. ניתן להשאירם ריקים בזמן התכנון; יש להשלימם לפני שיבוץ פעיל.",
+  eventDatesWarning:
+    "שינוי התאריכים אינו משנה שיבוצים קיימים או רשומות אחרות. בדקו את התאריכים שלהם לאחר השמירה.",
+  eventCreateUncertain:
+    "ייתכן שהאירוע נוצר. השאירו את הטופס פתוח ונסו שוב לאישור אותה בקשה; לא ייווצר אירוע כפול.",
+  eventNameInvalid: "הזינו שם אירוע באורך 1–200 תווים.",
+  eventTextTooLong: "הטקסט חורג מהאורך המותר.",
+  eventYearInvalid: "הזינו שנה שלמה בין 1900 ל־2200, או השאירו ריק.",
+  eventDateInvalid: "הזינו תאריך תקין.",
+  eventRangeInvalid: "תאריך הסיום חייב להיות אחרי תאריך ההתחלה.",
+  eventCurrencyInvalid: "בחרו מטבע אירוע נתמך, או השאירו ריק.",
   bedBoard: "לוח מיטות ולינה",
   bed: "מיטה",
   bedCode: "מספר / קוד פיזי של המיטה",
