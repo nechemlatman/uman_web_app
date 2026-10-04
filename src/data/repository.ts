@@ -46,15 +46,27 @@ const searchColumns: Partial<Record<Kind, string[]>> = {
     "hebrew_last_name",
     "phone",
   ],
-  flight: ["flight_number", "airline", "departure_airport", "arrival_airport"],
-  driver: ["full_name", "phone_number"],
-  vehicle: ["name", "license_plate"],
-  trip: ["origin", "destination"],
-  apartment: ["name", "address"],
-  room: ["name_or_number"],
-  sleeping_place: ["bed_code", "label"],
-  task: ["title"],
-  apartment_issue: ["title"],
+  flight: [
+    "flight_number",
+    "airline",
+    "departure_airport",
+    "arrival_airport",
+    "notes",
+  ],
+  driver: [
+    "full_name",
+    "phone_number",
+    "whatsapp_phone",
+    "license_number",
+    "notes",
+  ],
+  vehicle: ["name", "license_plate", "notes"],
+  trip: ["origin", "destination", "notes"],
+  apartment: ["name", "address", "hebrew_address", "landlord_phone", "notes"],
+  room: ["name_or_number", "description", "notes"],
+  sleeping_place: ["bed_code", "label", "position_notes"],
+  task: ["title", "description", "notes"],
+  apartment_issue: ["title", "description", "notes"],
   payment: ["reference"],
   expense: ["description"],
 };
@@ -76,6 +88,19 @@ export async function list(
         p_query: query,
         p_offset: page * PAGE_SIZE,
         p_person_id: filter?.value ?? null,
+      }),
+      eventId,
+    );
+  if (kind === "person")
+    return scopedRows(
+      await rpc("web_list_people", {
+        p_event_id: eventId,
+        p_query: query.slice(0, 200),
+        p_deleted: deleted,
+        p_limit: PAGE_SIZE,
+        p_offset: page * PAGE_SIZE,
+        p_sort: sort,
+        p_status: filter?.key === "status" ? filter.value : null,
       }),
       eventId,
     );
@@ -115,13 +140,17 @@ export async function list(
   return scopedRows(data, eventId);
 }
 export async function lookup(eventId: string, kind: Kind, id: string) {
+  if (kind === "person") {
+    const rows = scopedRows(
+      await rpc("web_list_people", { p_event_id: eventId, p_id: id }),
+      eventId,
+    );
+    if (!rows[0]) throw { code: "42501" };
+    return rows[0];
+  }
   const { data, error } = await backend()
     .from(tables[kind])
-    .select(
-      kind === "person"
-        ? "id,event_id,version,is_deleted,first_name,last_name"
-        : projection(kind),
-    )
+    .select(projection(kind))
     .eq("event_id", eventId)
     .eq("id", id)
     .single();
@@ -347,3 +376,18 @@ export const moveStay = (
     p_request_id: requestId,
   });
 };
+
+export async function canCreateEvent() {
+  return z.boolean().parse(await rpc("web_can_create_event", {}));
+}
+export async function createEvent(
+  requestId: string,
+  fields: Record<string, unknown>,
+) {
+  return z.uuid().parse(
+    await rpc("web_create_event", {
+      p_request_id: requestId,
+      p_fields: fields,
+    }),
+  );
+}

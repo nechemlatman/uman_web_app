@@ -15,6 +15,7 @@ import "./design-system/styles.css";
 const Operations = lazy(() => import("./features/operations"));
 const Entity = lazy(() => import("./features/entity"));
 const Availability = lazy(() => import("./features/availability"));
+const CreateEvent = lazy(() => import("./features/create-event"));
 const Settings = lazy(() => import("./features/settings"));
 document.documentElement.dataset.theme =
   localStorage.getItem("uman.theme") || "light";
@@ -56,6 +57,11 @@ const router = createBrowserRouter([
       { path: ":kind/:id", element: <Entity /> },
       { path: ":kind/:id/edit", element: <Entity /> },
     ],
+  },
+  {
+    path: "/events/new",
+    errorElement: <RouteError />,
+    element: <CreateEvent />,
   },
   { path: "*", element: <EventSelection /> },
 ]);

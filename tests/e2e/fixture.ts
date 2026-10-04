@@ -61,7 +61,13 @@ export async function fixture(page: Page) {
       ],
       events: [{ ...event }],
     },
-    state = { conflict: false, warnings: false, denied: false };
+    state = {
+      conflict: false,
+      warnings: false,
+      denied: false,
+      canCreate: true,
+      createUncertain: false,
+    };
   const token =
     btoa(JSON.stringify({ alg: "HS256", typ: "JWT" })) +
     "." +
@@ -149,6 +155,27 @@ export async function fixture(page: Page) {
     if (name === "logout") return respond({});
     if (name === "user")
       return respond({ id: actor, email: "manager@example.test" });
+    if (name === "web_can_create_event") return respond(state.canCreate);
+    if (name === "web_create_event") {
+      if (!state.canCreate) return respond({ code: "42501" }, 403);
+      let created = records.events.find(
+        (r) => r.creation_request_id === body.p_request_id,
+      );
+      if (!created) {
+        created = {
+          ...event,
+          ...(body.p_fields as Row),
+          id: crypto.randomUUID(),
+          creation_request_id: body.p_request_id,
+        };
+        records.events.unshift(created);
+      }
+      if (state.createUncertain) {
+        state.createUncertain = false;
+        return route.abort("failed");
+      }
+      return respond(created.id);
+    }
     if (name === "web_command_center")
       return respond({
         counts: { people: 1, assignments: 0, tasks: 0, issues: 0, beds: 0 },
@@ -188,7 +215,9 @@ export async function fixture(page: Page) {
           id: r.id,
           event_id: eventId,
           is_deleted: false,
-          label: String(r.first_name) + " " + String(r.last_name),
+          label:
+            [r.first_name, r.last_name].filter(Boolean).join(" ") ||
+            String(r.phone ?? ""),
         })),
         overlaps: [],
       });
@@ -233,6 +262,44 @@ export async function fixture(page: Page) {
       records.accommodation_assignments.push(next);
       return respond(next.id);
     }
+    if (name === "web_list_people") {
+      let rows = records.people.filter(
+        (r) =>
+          (body.p_id
+            ? r.id === body.p_id
+            : !!r.is_deleted === !!body.p_deleted) &&
+          (!body.p_status || r.status === body.p_status),
+      );
+      if (body.p_query)
+        rows = rows.filter((r) =>
+          [
+            "first_name",
+            "last_name",
+            "hebrew_first_name",
+            "hebrew_last_name",
+            "phone",
+            "whatsapp_phone",
+            "email",
+            "passport_name",
+            "notes",
+          ]
+            .map((k) => String(r[k] ?? ""))
+            .join(" ")
+            .toLowerCase()
+            .includes(String(body.p_query).toLowerCase()),
+        );
+      return respond(
+        rows.map((r) => ({
+          ...r,
+          display_label:
+            [r.first_name, r.last_name].filter(Boolean).join(" ") ||
+            r.phone ||
+            r.email ||
+            r.passport_name ||
+            "",
+        })),
+      );
+    }
     if (name === "person_duplicates") return respond([]);
     if (name === "read_person" || name === "read_trip")
       return respond(
@@ -274,6 +341,11 @@ export async function fixture(page: Page) {
     }
     if (name === "web_request_status") return respond(null);
     if (name === "edit_event_details") {
+      if (state.conflict) {
+        state.conflict = false;
+        records.events[0].version = Number(records.events[0].version) + 1;
+        return respond({ code: "40001" }, 409);
+      }
       records.events[0] = {
         ...records.events[0],
         ...Object.fromEntries(

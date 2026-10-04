@@ -1,3 +1,5 @@
+import { draftChecks } from "./drafts-db.mjs";
+import { eventSetupChecks } from "./event-setup-db.mjs";
 import { accommodationChecks } from "./accommodation-db.mjs";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
@@ -357,6 +359,28 @@ await accommodationChecks({
   event,
   room,
   person,
+});
+await eventSetupChecks({
+  db,
+  scalar,
+  eq,
+  denied,
+  identity,
+  owner,
+  other,
+  outsider,
+  event,
+});
+await draftChecks({
+  db,
+  scalar,
+  eq,
+  denied,
+  identity,
+  call,
+  owner,
+  outsider,
+  event,
 });
 console.log("Database checks passed:", checks);
 await db.close();

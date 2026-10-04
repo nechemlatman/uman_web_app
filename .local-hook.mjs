@@ -1,0 +1,1 @@
+import fs from 'node:fs';let p='tests/database.mjs',s=fs.readFileSync(p,'utf8');s='import { draftChecks } from "./drafts-db.mjs";\n'+s;s=s.replace('console.log("Database checks passed:", checks);','await draftChecks({db,scalar,eq,denied,identity,call,owner,outsider,event});\nconsole.log("Database checks passed:", checks);');fs.writeFileSync(p,s);

@@ -1,3 +1,4 @@
+import { en, he, type MessageKey } from "../i18n/messages";
 import { z } from "zod";
 export type Value = string | number | boolean | null | Record<string, unknown>;
 export type Fields = Record<string, Value>;
@@ -61,30 +62,79 @@ export const tables: Record<Kind, string> = {
 };
 export const text = (r: RecordRow | Fields, key: string): string =>
   r[key] == null ? "" : String(r[key]);
-export const title = (kind: Kind, r: RecordRow): string => {
+export const title = (kind: Kind, r: RecordRow, locale = "en"): string => {
+  const clean = (v: unknown) => String(v ?? "").trim();
+  const join = (keys: string[], sep = " ") =>
+    keys
+      .map((k) => clean(r[k]))
+      .filter(Boolean)
+      .join(sep);
+  const first = (keys: string[]) =>
+    keys.map((k) => clean(r[k])).find(Boolean) ?? "";
+  const fallback: Partial<Record<Kind, string>> = {
+    person: "unnamedPerson",
+    flight: "untitledFlight",
+    driver: "unnamedDriver",
+    vehicle: "unnamedVehicle",
+    trip: "untitledTrip",
+    apartment: "untitledApartment",
+    room: "unnamedRoom",
+    sleeping_place: "unnumberedBed",
+    task: "untitledTask",
+    apartment_issue: "untitledIssue",
+    accommodation_assignment: "assignments",
+    flight_passenger: "flightPassengers",
+    trip_passenger: "tripPassengers",
+  };
+  let value = "";
   if (kind === "person")
-    return [r.first_name, r.last_name].filter(Boolean).join(" ");
-  if (kind === "sleeping_place" && r.bed_code)
-    return [r.bed_code, r.label].filter(Boolean).join(" · ");
-  if (kind === "trip")
-    return [r.origin, r.destination].filter(Boolean).join(" → ");
-  if (
-    ["flight_passenger", "trip_passenger", "accommodation_assignment"].includes(
-      kind,
-    )
-  )
-    return "";
-  return String(
-    r.full_name ||
-      r.flight_number ||
-      r.title ||
-      r.name ||
-      r.name_or_number ||
-      r.label ||
-      r.reference ||
-      r.description ||
-      r.id.slice(0, 8),
-  );
+    value =
+      (locale === "he"
+        ? join(["hebrew_first_name", "hebrew_last_name"])
+        : join(["first_name", "last_name"])) ||
+      join(["first_name", "last_name"]) ||
+      join(["hebrew_first_name", "hebrew_last_name"]) ||
+      first([
+        "phone",
+        "whatsapp_phone",
+        "email",
+        "passport_name",
+        "display_label",
+      ]);
+  else if (kind === "sleeping_place")
+    value = join(["bed_code", "label"], " · ");
+  else if (kind === "trip")
+    value = join(["origin", "destination"], " → ") || first(["notes"]);
+  else if (kind === "driver")
+    value = first([
+      "full_name",
+      "phone_number",
+      "whatsapp_phone",
+      "license_number",
+      "notes",
+    ]);
+  else if (kind === "vehicle")
+    value = first(["name", "license_plate", "notes"]);
+  else if (kind === "flight")
+    value =
+      first(["flight_number", "airline"]) ||
+      join(["departure_airport", "arrival_airport"], " → ") ||
+      first(["notes"]);
+  else
+    value = first([
+      "title",
+      "name",
+      "name_or_number",
+      "label",
+      "reference",
+      "description",
+      "address",
+      "notes",
+    ]);
+  const key = fallback[kind] as MessageKey;
+  return value
+    ? value.slice(0, 160)
+    : ((locale === "he" ? he : en)[key] ?? r.id.slice(0, 8));
 };
 export function scopedRows(data: unknown, eventId: string): RecordRow[] {
   const rows = z.array(recordSchema).parse(data);

@@ -1,3 +1,4 @@
+import { DraftIndicator } from "../components/draft-indicator";
 import { StayBoard } from "./stay-board";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -69,7 +70,8 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
           <Link className="eyebrow" to={root}>
             {t(catalog[kind].label)}
           </Link>
-          <h1>{title(kind, row) || t(catalog[kind].label)}</h1>
+          <h1>{title(kind, row, locale) || t(catalog[kind].label)}</h1>
+          <DraftIndicator kind={kind} values={row} details />
           <div className="heading-meta">
             <Badge
               value={
