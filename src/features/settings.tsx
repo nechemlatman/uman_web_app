@@ -7,26 +7,20 @@ import { rpc } from "../data/repository";
 import { type EventRow } from "../domain/model";
 import { errorCode } from "../domain/validation";
 import { ErrorState, Badge } from "../components/states";
-const fields = [
-  ["name", "eventName", "text"],
-  ["hebrew_name", "hebrewName", "text"],
-  ["year", "year", "number"],
-  ["start_date", "startDate", "date"],
-  ["end_date", "endDate", "date"],
-  ["base_currency", "baseCurrency", "text"],
-  ["description", "description", "text"],
-  ["manager_notes", "managerNotes", "text"],
-];
-const values = (event: EventRow) =>
-  Object.fromEntries(
-    fields.map(([key]) => [key, String(event[key as keyof EventRow] ?? "")]),
-  );
+import {
+  eventFields as fields,
+  eventValues as values,
+  eventPayload,
+  validateEvent,
+} from "../domain/event-setup";
+import { EventFields } from "../components/event-fields";
 export default function Settings() {
   const { event, writable } = useEvent();
   const { t, locale, setLocale } = useI18n();
   const qc = useQueryClient();
   const [base, setBase] = useState(event);
   const [draft, setDraft] = useState(() => values(event));
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>();
   const [saved, setSaved] = useState(false);
@@ -55,6 +49,10 @@ export default function Settings() {
   );
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!writable || pending) return;
+    const found = validateEvent(draft);
+    setErrors(found);
+    if (Object.keys(found).length) return;
     setPending(true);
     setSaved(false);
     setError(undefined);
@@ -63,10 +61,8 @@ export default function Settings() {
         p_id: event.id,
         p_expected_version: base.version,
       };
-      for (const [key] of fields) {
-        const val = draft[key];
-        args["p_" + key] = val ? (key === "year" ? Number(val) : val) : null;
-      }
+      for (const [key, val] of Object.entries(eventPayload(draft)))
+        args["p_" + key] = val;
       const fresh = await rpc<EventRow>("edit_event_details", args);
       setBase(fresh);
       original.current = JSON.stringify(draft);
@@ -88,24 +84,22 @@ export default function Settings() {
           <Badge value={event.lifecycle_stage} />
         </div>
         <form data-dirty={dirty} onSubmit={submit}>
-          <div className="form-grid">
-            {fields.map(([key, label, type]) => (
-              <label key={key}>
-                {t(label)}
-                <input
-                  name={key}
-                  type={type}
-                  value={draft[key]}
-                  onChange={(e) => {
-                    setDraft((d) => ({ ...d, [key]: e.target.value }));
-                    setSaved(false);
-                  }}
-                  required={key === "name"}
-                  disabled={pending}
-                />
-              </label>
-            ))}
-          </div>
+          <EventFields
+            draft={draft}
+            errors={errors}
+            disabled={pending}
+            onChange={(k, v) => {
+              setDraft((d) => ({ ...d, [k]: v }));
+              setSaved(false);
+              setErrors({});
+            }}
+          />
+          {(draft.start_date !== values(base).start_date ||
+            draft.end_date !== values(base).end_date) && (
+            <p className="notice warning" role="status">
+              {t("eventDatesWarning")}
+            </p>
+          )}
           {!!error && <ErrorState error={error} />}
           {!!error && errorCode(error) === "conflict" && (
             <button type="button" onClick={() => setCompare(true)}>

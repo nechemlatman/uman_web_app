@@ -347,3 +347,18 @@ export const moveStay = (
     p_request_id: requestId,
   });
 };
+
+export async function canCreateEvent() {
+  return z.boolean().parse(await rpc("web_can_create_event", {}));
+}
+export async function createEvent(
+  requestId: string,
+  fields: Record<string, unknown>,
+) {
+  return z.uuid().parse(
+    await rpc("web_create_event", {
+      p_request_id: requestId,
+      p_fields: fields,
+    }),
+  );
+}
