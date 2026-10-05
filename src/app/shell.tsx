@@ -6,14 +6,36 @@ import { LanguageButton } from "../features/auth";
 import { Icon } from "../components/icon";
 import { backend } from "../data/client";
 import { ErrorState } from "../components/states";
+const moduleRoutes: Record<string, string[]> = {
+  people: ["people", "person"],
+  travel: [
+    "travel",
+    "flight",
+    "flight_passenger",
+    "trip",
+    "trip_passenger",
+    "driver",
+    "vehicle",
+  ],
+  availability: [
+    "availability",
+    "apartment",
+    "room",
+    "sleeping_place",
+    "accommodation_assignment",
+  ],
+  tasks: ["tasks", "task"],
+  issues: ["issues", "apartment_issue"],
+  finance: ["finance", "payment", "expense"],
+};
 const nav = [
   ["", "dashboard"],
-  ["person", "people"],
-  ["flight", "travel"],
-  ["apartment", "stay"],
-  ["task", "tasks"],
-  ["apartment_issue", "issues"],
-  ["payment", "finance"],
+  ["people", "people"],
+  ["travel", "travel"],
+  ["availability", "stay"],
+  ["tasks", "tasks"],
+  ["issues", "issues"],
+  ["finance", "finance"],
   ["schedule", "schedule"],
   ["alerts", "alerts"],
   ["activity", "activity"],
@@ -72,6 +94,14 @@ export function Shell() {
             <NavLink
               key={path}
               to={root + (path ? "/" + path : "")}
+              className={({ isActive }) =>
+                isActive ||
+                moduleRoutes[path]?.includes(
+                  location.pathname.slice(root.length + 1).split("/")[0],
+                )
+                  ? "active"
+                  : ""
+              }
               end={path === ""}
               onClick={() => setOpen(false)}
             >
@@ -135,6 +165,14 @@ export function Shell() {
           {nav.slice(0, 5).map(([path, label]) => (
             <NavLink
               to={root + (path ? "/" + path : "")}
+              className={({ isActive }) =>
+                isActive ||
+                moduleRoutes[path]?.includes(
+                  location.pathname.slice(root.length + 1).split("/")[0],
+                )
+                  ? "active"
+                  : ""
+              }
               end={path === ""}
               key={path}
             >

@@ -1,3 +1,4 @@
+import { DashboardReadiness } from "./dashboard-readiness";
 import { useState } from "react";
 import { useSession } from "../app/session";
 import { tables } from "../domain/model";
@@ -388,10 +389,10 @@ export default function Operations() {
       </section>
       <div className="stat-grid">
         {[
-          ["people", "participants", "person", "people"],
+          ["people", "participants", "people", "people"],
           ["assignments", "bedAssignments", "availability", "stay"],
-          ["tasks", "openTasks", "task", "operations"],
-          ["issues", "openIssues", "apartment_issue", "alerts"],
+          ["tasks", "openTasks", "tasks", "operations"],
+          ["issues", "openIssues", "issues", "alerts"],
         ].map(([key, label, kind, icon]) => (
           <Link
             className="stat-card"
@@ -400,10 +401,10 @@ export default function Operations() {
               root +
               "/" +
               kind +
-              (kind === "task" || kind === "apartment_issue"
-                ? "?status=OPEN_ITEMS"
-                : kind === "person"
-                  ? "?status=ACTIVE"
+              (kind === "tasks" || kind === "issues"
+                ? "?filter=open"
+                : kind === "people"
+                  ? "?filter=active"
                   : "")
             }
           >
@@ -441,6 +442,7 @@ export default function Operations() {
           </div>
         </section>
       )}
+      <DashboardReadiness />
       <div className="dashboard-columns">
         <section className="card">
           <div className="section-heading">
@@ -455,13 +457,16 @@ export default function Operations() {
             <Link to={root + "/schedule"}>{t("all")}</Link>
           </div>
           <Schedule data={data} limit={5} />
+          <Link className="button" to={root + "/travel"}>
+            {t("travelOperations")}
+          </Link>
         </section>
       </div>
       <div className="dashboard-columns">
         <section className="card">
           <div className="section-heading">
             <h2>{t("finance")}</h2>
-            <Link to={root + "/payment"}>{t("review")}</Link>
+            <Link to={root + "/finance"}>{t("review")}</Link>
           </div>
           <div className="finance-totals">
             <div>

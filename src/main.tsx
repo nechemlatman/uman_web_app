@@ -12,6 +12,8 @@ import { RouteError } from "./components/route-error";
 import { Loading } from "./components/states";
 import "./design-system/tokens.css";
 import "./design-system/styles.css";
+import "./design-system/workspace.css";
+const ManagerWorkspace = lazy(() => import("./features/manager-workspace"));
 const Operations = lazy(() => import("./features/operations"));
 const Entity = lazy(() => import("./features/entity"));
 const Availability = lazy(() => import("./features/availability"));
@@ -50,6 +52,10 @@ const router = createBrowserRouter([
       ...["schedule", "alerts", "activity", "search"].map((path) => ({
         path,
         element: <Operations />,
+      })),
+      ...["people", "travel", "tasks", "issues", "finance"].map((path) => ({
+        path,
+        element: <ManagerWorkspace />,
       })),
       { path: "availability", element: <Availability /> },
       { path: "settings", element: <Settings /> },

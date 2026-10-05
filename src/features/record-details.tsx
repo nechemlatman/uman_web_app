@@ -1,3 +1,4 @@
+import { ParticipantProfile } from "./participant-profile";
 import { DraftIndicator } from "../components/draft-indicator";
 import { StayBoard } from "./stay-board";
 import { useState } from "react";
@@ -67,7 +68,10 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
     <section>
       <div className="page-heading">
         <div>
-          <Link className="eyebrow" to={root}>
+          <Link
+            className="eyebrow"
+            to={kind === "person" ? `/e/${event.id}/people` : root}
+          >
             {t(catalog[kind].label)}
           </Link>
           <h1>{title(kind, row, locale) || t(catalog[kind].label)}</h1>
@@ -105,7 +109,7 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
       {!!error && <ErrorState error={error} />}
       <article className="card">
         <div className="section-heading">
-          <h2>{t("overview")}</h2>
+          <h2>{t(kind === "person" ? "identity" : "overview")}</h2>
           <small className="muted">
             {t("updated")} · {formatDate(row.updated_at_utc, locale, true)}
           </small>
@@ -114,6 +118,7 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
           {catalog[kind].fields
             .filter(
               (f) =>
+                (kind !== "person" || f.key !== "notes") &&
                 row[f.key] !== null &&
                 row[f.key] !== undefined &&
                 row[f.key] !== "",
@@ -150,7 +155,8 @@ export function Details({ kind, row }: { kind: Kind; row: RecordRow }) {
           roomId={kind === "room" ? row.id : undefined}
         />
       )}
-      {(relations[kind] ?? [])
+      {kind === "person" && <ParticipantProfile person={row} />}
+      {(kind === "person" ? [] : (relations[kind] ?? []))
         .filter(
           ([related]) =>
             !(
