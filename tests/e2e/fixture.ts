@@ -1,3 +1,4 @@
+import type { Summary } from "../../src/data/repository";
 import { type Page } from "@playwright/test";
 export const eventId = "44444444-4444-4444-8444-444444444444",
   personId = "55555555-5555-4555-8555-555555555555";
@@ -62,6 +63,7 @@ export async function fixture(page: Page) {
       events: [{ ...event }],
     },
     state = {
+      summary: null as Summary | null,
       conflict: false,
       warnings: false,
       denied: false,
@@ -177,17 +179,19 @@ export async function fixture(page: Page) {
       return respond(created.id);
     }
     if (name === "web_command_center")
-      return respond({
-        counts: { people: 1, assignments: 0, tasks: 0, issues: 0, beds: 0 },
-        alerts: [],
-        schedule: [],
-        finance: {
-          payments: "0",
-          expenses: "0",
-          currency: "USD",
-          unconverted: 0,
+      return respond(
+        state.summary ?? {
+          counts: { people: 1, assignments: 0, tasks: 0, issues: 0, beds: 0 },
+          alerts: [],
+          schedule: [],
+          finance: {
+            payments: "0",
+            expenses: "0",
+            currency: "USD",
+            unconverted: 0,
+          },
         },
-      });
+      );
     if (name === "web_assignment_review")
       return respond(
         state.warnings
@@ -289,15 +293,20 @@ export async function fixture(page: Page) {
             .includes(String(body.p_query).toLowerCase()),
         );
       return respond(
-        rows.map((r) => ({
-          ...r,
-          display_label:
-            [r.first_name, r.last_name].filter(Boolean).join(" ") ||
-            r.phone ||
-            r.email ||
-            r.passport_name ||
-            "",
-        })),
+        rows
+          .slice(
+            Number(body.p_offset ?? 0),
+            Number(body.p_offset ?? 0) + Number(body.p_limit ?? 40),
+          )
+          .map((r) => ({
+            ...r,
+            display_label:
+              [r.first_name, r.last_name].filter(Boolean).join(" ") ||
+              r.phone ||
+              r.email ||
+              r.passport_name ||
+              "",
+          })),
       );
     }
     if (name === "person_duplicates") return respond([]);
@@ -312,7 +321,9 @@ export async function fixture(page: Page) {
       if (body.p_id) rows = rows.filter((r) => r.id === body.p_id);
       if (body.p_person_id)
         rows = rows.filter((r) => r.person_id === body.p_person_id);
-      return respond(rows);
+      return respond(
+        rows.slice(Number(body.p_offset ?? 0), Number(body.p_offset ?? 0) + 40),
+      );
     }
     if (name.startsWith("save_")) {
       if (state.conflict) {
@@ -362,6 +373,11 @@ export async function fixture(page: Page) {
     for (const [key, value] of url.searchParams)
       if (value.startsWith("eq."))
         rows = rows.filter((r) => String(r[key]) === value.slice(3));
+    rows = rows.slice(
+      Number(url.searchParams.get("offset") ?? 0),
+      Number(url.searchParams.get("offset") ?? 0) +
+        Number(url.searchParams.get("limit") ?? rows.length),
+    );
     return respond(
       (request.headers()["accept"] ?? "").includes("vnd.pgrst.object")
         ? rows[0]
