@@ -365,7 +365,9 @@ export function StayBoard({
           <section className="stay-apartment" key={a.id}>
             <div className="section-heading">
               <h2>
-                <Link to={root + "/apartment/" + a.id}>{String(a.name)}</Link>
+                <Link to={root + "/apartment/" + a.id}>
+                  {title("apartment", a, locale)}
+                </Link>
               </h2>
               {canWrite && (
                 <Link to={root + "/room/new?apartment_id=" + a.id}>
