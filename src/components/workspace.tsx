@@ -177,3 +177,41 @@ export function Metric({
     <div className="workspace-metric">{content}</div>
   );
 }
+
+export function ActiveFilters({
+  filters,
+  onClearFilter,
+  onClearAll,
+}: {
+  filters: Array<{ key: string; label: string; value: string }>;
+  onClearFilter: (key: string) => void;
+  onClearAll: () => void;
+}) {
+  const { t } = useI18n();
+  const active = filters.filter((f) => Boolean(f.value));
+  if (!active.length) return null;
+  return (
+    <div className="active-filter-chips">
+      <span className="muted">{t("activeFilters")}:</span>
+      {active.map((f) => (
+        <span key={f.key} className="filter-chip">
+          <span>
+            {t(f.label)}:{" "}
+            <strong>{f.key === "search" ? `"${f.value}"` : t(f.value)}</strong>
+          </span>
+          <button
+            type="button"
+            className="chip-remove"
+            aria-label={`${t("dismiss")} ${t(f.label)}`}
+            onClick={() => onClearFilter(f.key)}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <button type="button" className="button-text" onClick={onClearAll}>
+        {t("clearFilters")}
+      </button>
+    </div>
+  );
+}

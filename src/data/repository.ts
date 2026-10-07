@@ -391,3 +391,45 @@ export async function createEvent(
     }),
   );
 }
+
+export interface PersonProfileData {
+  person: RecordRow | null;
+  flight_passengers: RecordRow[];
+  flights: RecordRow[];
+  trip_passengers: RecordRow[];
+  trips: RecordRow[];
+  accommodation_assignments: RecordRow[];
+  sleeping_places: RecordRow[];
+  rooms: RecordRow[];
+  apartments: RecordRow[];
+  payments: RecordRow[];
+  tasks: RecordRow[];
+}
+
+export async function readPersonProfile(
+  eventId: string,
+  personId: string,
+): Promise<PersonProfileData> {
+  const data = await rpc<Record<string, unknown>>("web_person_profile", {
+    p_event_id: eventId,
+    p_person_id: personId,
+  });
+  return {
+    person: data.person
+      ? (scopedRows([data.person], eventId)[0] ?? null)
+      : null,
+    flight_passengers: scopedRows(data.flight_passengers, eventId),
+    flights: scopedRows(data.flights, eventId),
+    trip_passengers: scopedRows(data.trip_passengers, eventId),
+    trips: scopedRows(data.trips, eventId),
+    accommodation_assignments: scopedRows(
+      data.accommodation_assignments,
+      eventId,
+    ),
+    sleeping_places: scopedRows(data.sleeping_places, eventId),
+    rooms: scopedRows(data.rooms, eventId),
+    apartments: scopedRows(data.apartments, eventId),
+    payments: scopedRows(data.payments, eventId),
+    tasks: scopedRows(data.tasks, eventId),
+  };
+}

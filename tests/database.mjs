@@ -320,6 +320,22 @@ await denied(
   call("save_task", { ...taskFields, assignee_id: outsider }),
   "23503",
 );
+await eq(
+  "select (public.web_person_profile('" +
+    event +
+    "','" +
+    person +
+    "')->'person'->>'id')",
+  person,
+);
+await eq(
+  "select jsonb_array_length(public.web_person_profile('" +
+    event +
+    "','" +
+    person +
+    "')->'accommodation_assignments')",
+  2,
+);
 await denied(
   "select public.web_availability('" + event + "','2027-09-10','2027-09-01')",
   "22023",

@@ -73,6 +73,26 @@ export function Activity({ entityId }: { entityId?: string }) {
     </>
   );
 }
+function alertTarget(
+  eventId: string,
+  a: { kind: string; entity_id: string; rule: string },
+) {
+  const root = "/e/" + eventId;
+  if (a.rule === "OVERDUE_TASK") return `${root}/tasks?filter=overdue`;
+  if (a.rule === "UNRESOLVED_APARTMENT_ISSUE")
+    return `${root}/issues?filter=open&priority=urgent`;
+  if (a.rule === "PERSON_WITHOUT_SLEEPING_PLACE")
+    return `${root}/people?filter=noStay`;
+  if (a.rule === "PERSON_WITHOUT_TRANSPORT")
+    return `${root}/people?filter=noTransport`;
+  if (a.rule === "ACCOMMODATION_OVERLAP") return `${root}/availability`;
+  if (a.rule === "TRN_NO_DRIVER" || a.rule === "VEHICLE_OVER_CAPACITY")
+    return `${root}/trip/${a.entity_id}`;
+  if (a.rule === "FLIGHT_CANCELLED" || a.rule === "FLIGHT_DELAY_IMPACT")
+    return `${root}/flight/${a.entity_id}`;
+  return `${root}/${a.kind}/${a.entity_id}`;
+}
+
 function AlertList({ data, limit = 100 }: { data: Summary; limit?: number }) {
   const { event } = useEvent();
   const { t } = useI18n();
@@ -102,7 +122,7 @@ function AlertList({ data, limit = 100 }: { data: Summary; limit?: number }) {
             <Link
               key={a.id}
               className={"operational-row alert-" + a.severity.toLowerCase()}
-              to={"/e/" + event.id + "/" + a.kind + "/" + a.entity_id}
+              to={alertTarget(event.id, a)}
             >
               <span className="row-icon">
                 <Icon name="alerts" />

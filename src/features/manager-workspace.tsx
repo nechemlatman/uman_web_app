@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEvent } from "../app/event";
 import { useI18n, formatDate } from "../i18n/provider";
-import { list, summary } from "../data/repository";
+import { list, save, summary } from "../data/repository";
 import {
   useWorkspace,
   linkedPeople,
@@ -13,9 +13,9 @@ import {
   overdue,
   openTask,
 } from "../data/workspace";
-import { title, type Kind } from "../domain/model";
-import { catalog } from "../domain/catalog";
-import { Badge } from "../components/states";
+import { title, type Kind, type RecordRow } from "../domain/model";
+import { catalog, encodeFields, initialFields } from "../domain/catalog";
+import { Badge, ErrorState } from "../components/states";
 import {
   WorkspaceHeader,
   WorkspaceEmpty,
@@ -24,6 +24,7 @@ import {
   OperationalCard,
   Metric,
   ContextActions,
+  ActiveFilters,
 } from "../components/workspace";
 
 function Filter({
@@ -55,6 +56,7 @@ function Filter({
     </label>
   );
 }
+
 export function PeopleWorkspace() {
   const { event } = useEvent();
   const { t, locale } = useI18n();
@@ -106,6 +108,12 @@ export function PeopleWorkspace() {
         .toLocaleLowerCase()
         .includes(search.toLocaleLowerCase()),
   );
+
+  const activeFilters = [
+    { key: "search", label: "search", value: search },
+    { key: "filter", label: "filter", value: filter === "all" ? "" : filter },
+  ];
+
   return (
     <section>
       <WorkspaceHeader
@@ -149,11 +157,33 @@ export function PeopleWorkspace() {
             ].map((v) => [v, v])}
           />
         </div>
+        <ActiveFilters
+          filters={activeFilters}
+          onClearFilter={(key) =>
+            key === "search" ? setSearch("") : setFilter("all")
+          }
+          onClearAll={() => {
+            setSearch("");
+            setFilter("all");
+          }}
+        />
         <p className="muted">{t("relationDefinitions")}</p>
         {!people.length ? (
           <WorkspaceEmpty kind="person" />
         ) : !visible.length ? (
-          <p className="workspace-empty">{t("noMatch")}</p>
+          <div className="workspace-empty">
+            <p>{t("noMatch")}</p>
+            <p className="muted">{t("filteredEmptyHelp")}</p>
+            <button
+              className="button"
+              onClick={() => {
+                setSearch("");
+                setFilter("all");
+              }}
+            >
+              {t("clearFilters")}
+            </button>
+          </div>
         ) : (
           <div className="participant-list">
             {visible.map((p) => (
@@ -276,6 +306,11 @@ export function TravelWorkspace() {
         String(b.scheduled_departure_utc ?? "9999"),
       ),
     );
+
+  const activeFilters = [
+    { key: "direction", label: "direction", value: direction },
+  ];
+
   return (
     <section>
       <WorkspaceHeader
@@ -366,8 +401,20 @@ export function TravelWorkspace() {
                 {t("allRecords")}
               </Link>
             </div>
+            <ActiveFilters
+              filters={activeFilters}
+              onClearFilter={() => setDirection("")}
+              onClearAll={() => setDirection("")}
+            />
             {!rows.length ? (
-              <WorkspaceEmpty kind={kind} />
+              <div className="workspace-empty">
+                <p>{t("noMatch")}</p>
+                {direction && (
+                  <button className="button" onClick={() => setDirection("")}>
+                    {t("clearFilters")}
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="ops-grid">
                 {rows.map((a) => {
@@ -378,6 +425,46 @@ export function TravelWorkspace() {
                   ).filter(
                     (p) => p[`${kind}_id`] === a.id && liveLink(p),
                   ).length;
+
+                  let flightTransportStatus = null;
+                  if (kind === "flight") {
+                    const isInbound = !a.direction || a.direction === "INBOUND";
+                    const flightPassengers = (r.flight_passenger ?? []).filter(
+                      (p) => p.flight_id === a.id && liveLink(p),
+                    );
+                    const passengerCount = flightPassengers.length;
+                    const flightPersonIds = new Set(
+                      flightPassengers.map((p) => String(p.person_id)),
+                    );
+                    const liveTrips = new Set(
+                      (r.trip ?? []).filter(liveLink).map((t) => t.id),
+                    );
+                    const transportedPersonIds = new Set(
+                      (r.trip_passenger ?? [])
+                        .filter(
+                          (tp) =>
+                            liveLink(tp) && liveTrips.has(String(tp.trip_id)),
+                        )
+                        .map((tp) => String(tp.person_id)),
+                    );
+                    const assignedCount = [...flightPersonIds].filter((id) =>
+                      transportedPersonIds.has(id),
+                    ).length;
+                    const missingCount = Math.max(
+                      0,
+                      passengerCount - assignedCount,
+                    );
+
+                    if (isInbound && passengerCount > 0) {
+                      flightTransportStatus = {
+                        assignedCount,
+                        passengerCount,
+                        missingCount,
+                        ready: missingCount === 0,
+                      };
+                    }
+                  }
+
                   const warnings =
                     alerts.data?.alerts.filter(
                       (v) => v.kind === kind && v.entity_id === a.id,
@@ -466,6 +553,15 @@ export function TravelWorkspace() {
                           </div>
                         )}
                       </dl>
+                      {flightTransportStatus && (
+                        <p
+                          className={`notice ${flightTransportStatus.ready ? "success" : "warning"}`}
+                        >
+                          {flightTransportStatus.ready
+                            ? `${t("transportReady")} · ${flightTransportStatus.assignedCount}/${flightTransportStatus.passengerCount} ${t("assignedCount")}`
+                            : `${flightTransportStatus.assignedCount}/${flightTransportStatus.passengerCount} ${t("assignedCount")} · ${flightTransportStatus.missingCount} ${t("missingTransport")}`}
+                        </p>
+                      )}
                       {Number(a.delay_minutes) > 0 && (
                         <p className="notice warning">
                           {t("delayMinutes")}: {String(a.delay_minutes)}
@@ -497,10 +593,17 @@ export function TravelWorkspace() {
 export function WorkBoard({ kind }: { kind: "task" | "apartment_issue" }) {
   const { t, locale } = useI18n();
   const { event, writable } = useEvent();
+  const qc = useQueryClient();
   const [params] = useSearchParams();
   const [mode, setMode] = useState(params.get("filter") ?? "open"),
     [priority, setPriority] = useState(params.get("priority") ?? ""),
     [context, setContext] = useState("");
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<{
+    id: string;
+    error: unknown;
+  } | null>(null);
+
   const q = useWorkspace([
     kind,
     "person",
@@ -511,6 +614,7 @@ export function WorkBoard({ kind }: { kind: "task" | "apartment_issue" }) {
   const all = r[kind] ?? [];
   const contextKind = issue ? "apartment" : "person";
   const contextKey = issue ? "apartment_id" : "assignee_id";
+
   const rows = all.filter(
     (a) =>
       (mode === "all" ||
@@ -526,9 +630,50 @@ export function WorkBoard({ kind }: { kind: "task" | "apartment_issue" }) {
           ["HIGH", "CRITICAL"].includes(String(a.priority)))) &&
       (!context || a[contextKey] === context),
   );
+
   const statuses = catalog[kind].fields.find(
     (f) => f.key === "status",
   )!.options!;
+
+  async function handleQuickStatus(row: RecordRow, newStatus: string) {
+    setSavingId(row.id);
+    setStatusError(null);
+    try {
+      const encoded = encodeFields(
+        kind,
+        { ...initialFields(kind, row), status: newStatus },
+        row,
+      );
+      await save(event.id, kind, encoded, crypto.randomUUID(), row);
+      await qc.invalidateQueries({ queryKey: ["event", event.id] });
+    } catch (err) {
+      setStatusError({ id: row.id, error: err });
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  const activeFilters = [
+    { key: "filter", label: "filter", value: mode === "open" ? "" : mode },
+    { key: "priority", label: "priority", value: priority },
+    {
+      key: "context",
+      label: issue ? "apartment" : "assignee",
+      value: context
+        ? (() => {
+            const ctxRow = (r[contextKind] ?? []).find((a) => a.id === context);
+            return ctxRow ? title(contextKind, ctxRow, locale) : context;
+          })()
+        : "",
+    },
+  ];
+
+  const clearAllFilters = () => {
+    setMode("open");
+    setPriority("");
+    setContext("");
+  };
+
   return (
     <section>
       <WorkspaceHeader
@@ -604,10 +749,25 @@ export function WorkBoard({ kind }: { kind: "task" | "apartment_issue" }) {
             ]}
           />
         </div>
+        <ActiveFilters
+          filters={activeFilters}
+          onClearFilter={(key) => {
+            if (key === "filter") setMode("open");
+            if (key === "priority") setPriority("");
+            if (key === "context") setContext("");
+          }}
+          onClearAll={clearAllFilters}
+        />
         {!all.length ? (
           <WorkspaceEmpty kind={kind} />
         ) : !rows.length ? (
-          <p className="workspace-empty">{t("noMatch")}</p>
+          <div className="workspace-empty">
+            <p>{t("noMatch")}</p>
+            <p className="muted">{t("filteredEmptyHelp")}</p>
+            <button className="button" onClick={clearAllFilters}>
+              {t("clearFilters")}
+            </button>
+          </div>
         ) : (
           <div className="work-board">
             {statuses
@@ -681,12 +841,125 @@ export function WorkBoard({ kind }: { kind: "task" | "apartment_issue" }) {
                           </>
                         )}
                         {writable && (
-                          <Link
-                            className="button"
-                            to={`/e/${event.id}/${kind}/${a.id}/edit`}
-                          >
-                            {t("updateStatus")}
-                          </Link>
+                          <div className="quick-status-actions">
+                            {!issue && a.status === "NEW" && (
+                              <>
+                                <button
+                                  className="button"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "IN_PROGRESS")
+                                  }
+                                >
+                                  {t("markInProgress")}
+                                </button>
+                                <button
+                                  className="button"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "WAITING")
+                                  }
+                                >
+                                  {t("markWaiting")}
+                                </button>
+                                <button
+                                  className="button primary"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "COMPLETED")
+                                  }
+                                >
+                                  {t("markComplete")}
+                                </button>
+                              </>
+                            )}
+                            {!issue && a.status === "IN_PROGRESS" && (
+                              <>
+                                <button
+                                  className="button"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "WAITING")
+                                  }
+                                >
+                                  {t("markWaiting")}
+                                </button>
+                                <button
+                                  className="button primary"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "COMPLETED")
+                                  }
+                                >
+                                  {t("markComplete")}
+                                </button>
+                              </>
+                            )}
+                            {!issue && a.status === "WAITING" && (
+                              <>
+                                <button
+                                  className="button"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "IN_PROGRESS")
+                                  }
+                                >
+                                  {t("markInProgress")}
+                                </button>
+                                <button
+                                  className="button primary"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "COMPLETED")
+                                  }
+                                >
+                                  {t("markComplete")}
+                                </button>
+                              </>
+                            )}
+                            {issue && a.status === "OPEN" && (
+                              <>
+                                <button
+                                  className="button"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "IN_PROGRESS")
+                                  }
+                                >
+                                  {t("markInProgress")}
+                                </button>
+                                <button
+                                  className="button primary"
+                                  disabled={savingId === a.id}
+                                  onClick={() =>
+                                    void handleQuickStatus(a, "RESOLVED")
+                                  }
+                                >
+                                  {t("resolve")}
+                                </button>
+                              </>
+                            )}
+                            {issue && a.status === "IN_PROGRESS" && (
+                              <button
+                                className="button primary"
+                                disabled={savingId === a.id}
+                                onClick={() =>
+                                  void handleQuickStatus(a, "RESOLVED")
+                                }
+                              >
+                                {t("resolve")}
+                              </button>
+                            )}
+                            <Link
+                              className="button"
+                              to={`/e/${event.id}/${kind}/${a.id}/edit`}
+                            >
+                              {t("updateStatus")}
+                            </Link>
+                          </div>
+                        )}
+                        {statusError?.id === a.id && (
+                          <ErrorState error={statusError.error} />
                         )}
                       </OperationalCard>
                     ))}
@@ -810,6 +1083,7 @@ export function FinanceWorkspace() {
     </section>
   );
 }
+
 export default function ManagerWorkspace() {
   const path = useLocation().pathname.split("/").pop();
   return path === "people" ? (

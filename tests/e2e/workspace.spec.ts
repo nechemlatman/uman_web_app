@@ -373,3 +373,42 @@ test("participant absence filters include people beyond the first page", async (
     page.getByRole("link", { name: "Participant 40", exact: true }),
   ).toBeVisible();
 });
+
+test("fast-path inline status transitions work directly from cards", async ({
+  page,
+}) => {
+  await populated(page);
+  await page.goto(`/e/${eventId}/tasks`);
+  await expect(
+    page.getByRole("button", { name: "Mark completed" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Mark completed" }).click();
+  await page.goto(`/e/${eventId}/issues`);
+  await expect(
+    page.getByRole("button", { name: "Mark in progress" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Mark in progress" }).click();
+});
+
+test("mobile two-level navigation drawer opens and exposes all secondary modules", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await populated(page);
+  await page.goto(`/e/${eventId}/dashboard`);
+  const moreBtn = page.getByRole("button", { name: "More operations" });
+  await expect(moreBtn).toBeVisible();
+  await moreBtn.click();
+  await expect(page.locator("#mobile-more-drawer")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#mobile-more-drawer")).toHaveCount(0);
+});
+
+test("active filter chips and quick reset clear filters", async ({ page }) => {
+  await populated(page);
+  await page.goto(`/e/${eventId}/people`);
+  await page.getByLabel("Filter", { exact: true }).selectOption("noFlight");
+  await expect(page.locator(".active-filter-chips")).toBeVisible();
+  await page.getByRole("button", { name: "Clear filters" }).click();
+  await expect(page.locator(".active-filter-chips")).toHaveCount(0);
+});

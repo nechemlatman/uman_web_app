@@ -493,6 +493,18 @@ export const en = {
   FLIGHT_DELAY_IMPACT: "Flight delayed — review transport",
   EXPENSE_WITHOUT_RATE: "Missing recorded exchange rate",
   FLIGHT_MISSING_INFO: "Flight details incomplete",
+  markInProgress: "Mark in progress",
+  markWaiting: "Mark waiting",
+  markComplete: "Mark completed",
+  resolve: "Mark resolved",
+  transportReady: "Transport ready",
+  assignedCount: "assigned",
+  missingTransport: "missing transport",
+  activeFilters: "Active filters",
+  clearFilters: "Clear filters",
+  filteredEmptyHelp:
+    "No records match the active filters. Reset filters to show all items.",
+  moreModules: "More operations",
 };
 export type MessageKey = keyof typeof en;
 export const he: Record<MessageKey, string> = {
@@ -980,4 +992,16 @@ export const he: Record<MessageKey, string> = {
   FLIGHT_DELAY_IMPACT: "טיסה מתעכבת — יש לבדוק הסעות",
   EXPENSE_WITHOUT_RATE: "חסר שער המרה מתועד",
   FLIGHT_MISSING_INFO: "חסרים פרטי טיסה",
+  markInProgress: "סומן בטיפול",
+  markWaiting: "סומן בממתין",
+  markComplete: "סומן כהושלם",
+  resolve: "סומן כנפתר",
+  transportReady: "הסעות מוכנות",
+  assignedCount: "משובצים",
+  missingTransport: "חסרי הסעה",
+  activeFilters: "סננים פעילים",
+  clearFilters: "איפוס סננים",
+  filteredEmptyHelp:
+    "לא נמצאו רשומות המתאימות לסננים הפעילים. אפשר לאפס סננים כדי להציג את כולם.",
+  moreModules: "תפעול נוסף",
 };

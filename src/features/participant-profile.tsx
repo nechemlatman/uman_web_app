@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useEvent } from "../app/event";
 import { useI18n, formatDate } from "../i18n/provider";
-import { useWorkspace } from "../data/workspace";
+import { readPersonProfile } from "../data/repository";
 import { type Kind, type RecordRow } from "../domain/model";
 import {
   WorkspaceState,
@@ -14,19 +15,11 @@ export function ParticipantProfile({ person }: { person: RecordRow }) {
   const { event, writable } = useEvent();
   const { t, locale } = useI18n();
   const root = `/e/${event.id}`;
-  const q = useWorkspace([
-    "flight_passenger",
-    "flight",
-    "trip_passenger",
-    "trip",
-    "accommodation_assignment",
-    "sleeping_place",
-    "room",
-    "apartment",
-    "payment",
-    "task",
-  ]);
-  const r = q.rows;
+  const profileQuery = useQuery({
+    queryKey: ["event", event.id, "person-profile", person.id],
+    queryFn: () => readPersonProfile(event.id, person.id),
+  });
+  const data = profileQuery.data;
   const sections: Array<[Kind, string, string, string]> = [
     ["flight_passenger", "profileTravel", "assignFlight", "person_id"],
     ["trip_passenger", "groundTransport", "assignTransport", "person_id"],
@@ -35,7 +28,11 @@ export function ParticipantProfile({ person }: { person: RecordRow }) {
     ["task", "tasks", "addTask", "assignee_id"],
   ];
   return (
-    <WorkspaceState {...q}>
+    <WorkspaceState
+      pending={profileQuery.isPending}
+      error={profileQuery.error}
+      retry={() => void profileQuery.refetch()}
+    >
       <div className="section-heading profile-heading">
         <div>
           <p className="eyebrow">{t("participant360")}</p>
@@ -45,7 +42,17 @@ export function ParticipantProfile({ person }: { person: RecordRow }) {
       </div>
       <div className="profile-grid">
         {sections.map(([kind, label, action, key]) => {
-          const related = (r[kind] ?? []).filter((a) => a[key] === person.id);
+          const listKey =
+            kind === "flight_passenger"
+              ? "flight_passengers"
+              : kind === "trip_passenger"
+                ? "trip_passengers"
+                : kind === "accommodation_assignment"
+                  ? "accommodation_assignments"
+                  : kind === "payment"
+                    ? "payments"
+                    : "tasks";
+          const related = data ? (data[listKey] ?? []) : [];
           return (
             <section
               className="card profile-section"
@@ -67,13 +74,15 @@ export function ParticipantProfile({ person }: { person: RecordRow }) {
               ) : (
                 <ol className="profile-records">
                   {related.map((a) => {
-                    const flight = r.flight?.find((f) => f.id === a.flight_id),
-                      trip = r.trip?.find((f) => f.id === a.trip_id);
-                    const bed = r.sleeping_place?.find(
+                    const flight = data?.flights.find(
+                        (f) => f.id === a.flight_id,
+                      ),
+                      trip = data?.trips.find((f) => f.id === a.trip_id);
+                    const bed = data?.sleeping_places.find(
                         (b) => b.id === a.sleeping_place_id,
                       ),
-                      room = r.room?.find((b) => b.id === bed?.room_id),
-                      apartment = r.apartment?.find(
+                      room = data?.rooms.find((b) => b.id === bed?.room_id),
+                      apartment = data?.apartments.find(
                         (b) => b.id === room?.apartment_id,
                       );
                     return (

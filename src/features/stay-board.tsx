@@ -53,6 +53,7 @@ function Totals({ beds }: { beds: BoardBed[] }) {
     </dl>
   );
 }
+
 export function StayBoard({
   apartmentId,
   roomId,
@@ -130,6 +131,7 @@ export function StayBoard({
       .join(" ")
       .toLocaleLowerCase()
       .includes(query.toLocaleLowerCase());
+
   const renderRoom = (room: RecordRow | null) => {
     const beds = allBeds.filter((b) =>
         room ? b.row.room_id === room.id : !b.row.room_id,
@@ -137,12 +139,13 @@ export function StayBoard({
       visible = beds.filter(match);
     if ((query || state !== "all") && !visible.length) return null;
     return (
-      <section
+      <details
         className="card stay-room"
+        open
         key={room?.id ?? "unplaced"}
         aria-label={room ? title("room", room, locale) : t("unplacedBeds")}
       >
-        <div className="section-heading">
+        <summary className="section-heading">
           <h3>
             {room ? (
               <Link to={root + "/room/" + room.id}>
@@ -161,14 +164,18 @@ export function StayBoard({
                 {t("addBed")}
               </Link>
               <button
+                type="button"
                 disabled={!!bulk || !!move}
-                onClick={() => setBulk(room.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setBulk(room.id);
+                }}
               >
                 {t("bulkBeds")}
               </button>
             </div>
           )}
-        </div>
+        </summary>
         <Totals beds={beds} />
         {!visible.length ? (
           <p>{t("noBeds")}</p>
@@ -212,43 +219,53 @@ export function StayBoard({
                         {String(a.agreed_price ?? "—")} {event.base_currency}
                       </bdi>
                     </p>
-                    <Link to={root + "/accommodation_assignment/" + a.id}>
-                      {t("details")}
-                    </Link>
-                    {canWrite && (
-                      <div className="actions">
-                        <Link
-                          to={
-                            root + "/accommodation_assignment/" + a.id + "/edit"
-                          }
-                        >
-                          {t("editAssignment")}
-                        </Link>
-                        <button
-                          disabled={pending || !!move || !!bulk}
-                          onClick={() => setMove(a)}
-                        >
-                          {t("moveStay")}
-                        </button>
-                        <button
-                          disabled={pending}
-                          onClick={() => {
-                            if (window.confirm(t("cancelStayConfirm")))
-                              void change("accommodation_assignment", a, {
-                                status: "CANCELLED",
-                              });
-                          }}
-                        >
-                          {t("cancelStay")}
-                        </button>
-                      </div>
-                    )}
+                    <div className="actions">
+                      <Link to={root + "/accommodation_assignment/" + a.id}>
+                        {t("details")}
+                      </Link>
+                      {canWrite && (
+                        <details className="context-actions">
+                          <summary>{t("actions")}</summary>
+                          <div>
+                            <Link
+                              to={
+                                root +
+                                "/accommodation_assignment/" +
+                                a.id +
+                                "/edit"
+                              }
+                            >
+                              {t("editAssignment")}
+                            </Link>
+                            <button
+                              type="button"
+                              disabled={pending || !!move || !!bulk}
+                              onClick={() => setMove(a)}
+                            >
+                              {t("moveStay")}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={pending}
+                              onClick={() => {
+                                if (window.confirm(t("cancelStayConfirm")))
+                                  void change("accommodation_assignment", a, {
+                                    status: "CANCELLED",
+                                  });
+                              }}
+                            >
+                              {t("cancelStay")}
+                            </button>
+                          </div>
+                        </details>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {canWrite && (
                   <div className="actions">
                     <Link
-                      className="button"
+                      className="button primary"
                       to={
                         root +
                         "/accommodation_assignment/new?sleeping_place_id=" +
@@ -257,28 +274,37 @@ export function StayBoard({
                     >
                       {t("assignBed")}
                     </Link>
-                    <Link to={root + "/sleeping_place/" + b.row.id + "/edit"}>
-                      {t("editBed")}
-                    </Link>
-                    <button
-                      disabled={pending}
-                      onClick={() =>
-                        void change("sleeping_place", b.row, {
-                          is_active: !b.row.is_active,
-                        })
-                      }
-                    >
-                      {t(b.row.is_active ? "deactivateBed" : "activateBed")}
-                    </button>
+                    <details className="context-actions">
+                      <summary>{t("actions")}</summary>
+                      <div>
+                        <Link
+                          to={root + "/sleeping_place/" + b.row.id + "/edit"}
+                        >
+                          {t("editBed")}
+                        </Link>
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() =>
+                            void change("sleeping_place", b.row, {
+                              is_active: !b.row.is_active,
+                            })
+                          }
+                        >
+                          {t(b.row.is_active ? "deactivateBed" : "activateBed")}
+                        </button>
+                      </div>
+                    </details>
                   </div>
                 )}
               </article>
             ))}
           </div>
         )}
-      </section>
+      </details>
     );
   };
+
   return (
     <section className="stay-board">
       <div className="section-heading">
@@ -362,8 +388,8 @@ export function StayBoard({
       {apartments
         .filter((a) => !roomId || rooms.some((r) => r.apartment_id === a.id))
         .map((a) => (
-          <section className="stay-apartment" key={a.id}>
-            <div className="section-heading">
+          <details className="stay-apartment" open key={a.id}>
+            <summary className="section-heading">
               <h2>
                 <Link to={root + "/apartment/" + a.id}>
                   {title("apartment", a, locale)}
@@ -374,7 +400,7 @@ export function StayBoard({
                   {t("addRoom")}
                 </Link>
               )}
-            </div>
+            </summary>
             <Totals
               beds={allBeds.filter((b) =>
                 rooms.some(
@@ -383,7 +409,7 @@ export function StayBoard({
               )}
             />
             {rooms.filter((r) => r.apartment_id === a.id).map(renderRoom)}
-          </section>
+          </details>
         ))}
       {rooms.filter((r) => !r.apartment_id).map(renderRoom)}
       {!roomId &&

@@ -45,17 +45,29 @@ export function Shell() {
   const { event, sync } = useEvent();
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [error, setError] = useState<unknown>();
   const location = useLocation();
   useEffect(() => {
-    if (!open) return;
+    if (!open && !moreOpen) return;
     const close = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        setMoreOpen(false);
+      }
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [open]);
+  }, [open, moreOpen]);
   const root = "/e/" + event.id;
+  const currentModule = location.pathname.slice(root.length + 1).split("/")[0];
+  const primaryNav = nav.slice(0, 4);
+  const secondaryNav = nav.slice(4);
+  const isMoreActive = secondaryNav.some(
+    ([path]) =>
+      moduleRoutes[path]?.includes(currentModule) ||
+      (path === "" ? currentModule === "" : currentModule === path),
+  );
   function signOut() {
     if (
       document.querySelector("form[data-dirty=true]") &&
@@ -162,7 +174,7 @@ export function Shell() {
           <Outlet key={location.pathname} />
         </main>
         <nav className="mobile-nav" aria-label={t("more")}>
-          {nav.slice(0, 5).map(([path, label]) => (
+          {primaryNav.map(([path, label]) => (
             <NavLink
               to={root + (path ? "/" + path : "")}
               className={({ isActive }) =>
@@ -180,7 +192,66 @@ export function Shell() {
               <span>{t(label)}</span>
             </NavLink>
           ))}
+          <button
+            type="button"
+            className={
+              "mobile-more-button " + (moreOpen || isMoreActive ? "active" : "")
+            }
+            aria-expanded={moreOpen}
+            aria-controls="mobile-more-drawer"
+            aria-label={t("moreModules")}
+            onClick={() => setMoreOpen(!moreOpen)}
+          >
+            <Icon name="operations" />
+            <span>{t("more")}</span>
+          </button>
         </nav>
+        {moreOpen && (
+          <>
+            <button
+              className="scrim"
+              aria-label={t("dismiss")}
+              onClick={() => setMoreOpen(false)}
+            />
+            <div
+              id="mobile-more-drawer"
+              className="more-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("moreModules")}
+            >
+              <div className="drawer-header">
+                <h2>{t("moreModules")}</h2>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label={t("dismiss")}
+                  onClick={() => setMoreOpen(false)}
+                >
+                  <Icon name="search" />
+                </button>
+              </div>
+              <div className="drawer-grid">
+                {secondaryNav.map(([path, label]) => (
+                  <NavLink
+                    key={path}
+                    to={root + "/" + path}
+                    className={({ isActive }) =>
+                      "drawer-link " +
+                      (isActive || moduleRoutes[path]?.includes(currentModule)
+                        ? "active"
+                        : "")
+                    }
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    <Icon name={label} />
+                    <span>{t(label)}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
